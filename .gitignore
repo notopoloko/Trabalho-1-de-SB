@@ -1,0 +1,6 @@
+pre_proc
+pre_proc_debug
+obj/*.o
+example/*.pre
+example/*.obj
+.vscode
