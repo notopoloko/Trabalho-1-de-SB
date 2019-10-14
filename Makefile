@@ -1,6 +1,6 @@
 SOURCE=./source
 CXX=g++
-CXXFLAGS=-I $(SOURCE) -Wall
+CXXFLAGS=-I $(SOURCE) -Wall -std=c++11
 
 ODIR=./obj
 

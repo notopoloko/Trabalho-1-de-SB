@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <map>
 #include <sstream>
@@ -35,6 +36,6 @@ public:
     Montador();
     ~Montador();
 
-    void mount (const std::string fileName);
+    void mount ( std::string fileName);
 };
 

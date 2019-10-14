@@ -8,7 +8,7 @@ Montador::~Montador()
 {
 }
 
-void Montador::mount (const std::string fileName) {
+void Montador::mount ( std::string fileName) {
     std::ifstream arq;
 
     arq.open(fileName);
@@ -22,6 +22,7 @@ void Montador::mount (const std::string fileName) {
     // e que nao possuem caracteres especiais: '\0'
     std::stringstream buffer;
     buffer << arq.rdbuf();
+    arq.close();
 
     std::string content = buffer.str();
     std::size_t textBegin = content.find("SECTION TEXT"), textSize;
@@ -37,6 +38,8 @@ void Montador::mount (const std::string fileName) {
     // Tratamento da falta da parte de dados aqui
     if ( dataBegin != std::string::npos) {
         textSize = dataBegin - textBegin;
+    } else {
+        std::cerr << "Sem parte de dados" << std::endl;
     }
      
     std::string code = content.substr(textBegin, textSize);
@@ -52,7 +55,16 @@ void Montador::mount (const std::string fileName) {
     Montador::mountCode(code);
     Montador::mountData(data);
 
-    arq.close();
+    // Dump file
+    fileName.replace( fileName.find_last_of('.'), std::string::npos, ".obj" );
+    std::ofstream outputFile(fileName);
+    if (outputFile.is_open()) {
+        std::ostream_iterator<std::uint16_t> output_iterator(outputFile, " ");
+        std::copy(endCode.begin(), endCode.end(), output_iterator);
+    } else {
+        std::cerr << "Unable to open file to dump" << std::endl;
+    }
+    
 }
 
 void Montador::mountCode (const std::string &code) {
@@ -172,8 +184,4 @@ void Montador::mountData (const std::string &data) {
             currentPosition = temp;
         }
     }
-    for (const auto & val : endCode) {
-        std::cout << val << " ";
-    }
-    
 }
