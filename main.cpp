@@ -14,19 +14,19 @@ int main(int argc, char** argv){
 
     // file.close();
 
-    FILE *arq;
-    arq = fopen(argv[1], "r");
+    // FILE *arq;
+    // arq = fopen(argv[1], "r");
 
-    if(arq == NULL){
-        printf("Erro ao abrir o arquivo!\n");
-        exit(1);
-    }
+    // if(arq == NULL){
+    //     printf("Erro ao abrir o arquivo!\n");
+    //     exit(1);
+    // }
 
     // pre_processamento(arq, argv[1]);
 
     Montador montador;
     montador.mount("example/bin.asm");
 
-    fclose(arq);
+    // fclose(arq);
     return 0;
 }

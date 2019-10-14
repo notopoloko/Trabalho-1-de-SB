@@ -3,12 +3,13 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <vector>
 
 class Montador
 {
 private:
     const std::string fileName;
-    const std::map <std::string, uint8_t> codes = {
+    std::map <std::string, std::uint16_t> codes = {
         {"ADD", 1},
         {"SUB", 2},
         {"MULT", 3},
@@ -24,7 +25,9 @@ private:
         {"OUTPUT", 13},
         {"STOP", 14}
     };
-    std::map <std::string, int> dependencias;
+    std::map <std::string, int> labels;
+    std::map <std::string, int> deps;
+    std::vector<std::uint16_t> endCode;
 
     void mountCode(const std::string &code);
     void mountData(const std::string &data);

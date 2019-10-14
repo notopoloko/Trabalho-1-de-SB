@@ -1,13 +1,13 @@
 SOURCE=./source
 CXX=g++
 CXXFLAGS=-I $(SOURCE) -Wall
-CXXFLAGSDEBUG=-g -I $(SOURCE) -Wall
 
 ODIR=./obj
 
 all: $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o pre_proc
 default: all
-# debug_version: clean $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o pre_proc_debug
+debug_version: CXXFLAGS=-g -I $(SOURCE) -Wall
+debug_version: clean $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o pre_proc_debug;
 
 # C++ -> .hpp
 _DEPS = pre_proc.h montador.hpp
@@ -33,7 +33,7 @@ pre_proc: $(OBJ)
 
 # Gere versao debug
 pre_proc_debug: $(OBJ)
-	$(CXX) -o $@ $^ $(CXXFLAGSDEBUG)
+	$(CXX) -o $@ $^ $(CXXFLAGS)
 
 .PHONY: clean
 
