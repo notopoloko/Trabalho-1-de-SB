@@ -4,3 +4,4 @@ obj/*.o
 example/*.pre
 example/*.obj
 .vscode
+.idea

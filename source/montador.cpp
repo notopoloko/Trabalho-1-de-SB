@@ -27,22 +27,20 @@ void Montador::mount ( std::string fileName) {
     std::string content = buffer.str();
     std::size_t textBegin = content.find("SECTION TEXT"), textSize;
 
-    // Tratamento da falte de parte de codigo aqui
+    // Tratamento da falta de parte de codigo aqui
     if (textBegin == std::string::npos)
     {
         std::cerr << "Sem parte de codigo" << std::endl;
         exit(0);
     }
-    textBegin += 13; // std::string("SECTION TEXT").size()
     std::size_t dataBegin = content.find("SECTION DATA"), dataSize;
     // Tratamento da falta da parte de dados aqui
     if ( dataBegin != std::string::npos) {
-        textSize = dataBegin - textBegin;
+        textSize = dataBegin - textBegin + 13; // std::string("SECTION TEXT").size()
     } else {
         std::cerr << "Sem parte de dados" << std::endl;
     }
-     
-    std::string code = content.substr(textBegin, textSize);
+    std::string code = content.substr(textBegin + 13, textSize);
     dataBegin += 13; // std::string("SECTION DATA").size()
     if (textBegin > dataBegin)
     {
@@ -52,6 +50,7 @@ void Montador::mount ( std::string fileName) {
         dataSize = std::string::npos;
     }
     std::string data = content.substr(dataBegin, dataSize);
+
     Montador::mountCode(code);
     Montador::mountData(data);
 
