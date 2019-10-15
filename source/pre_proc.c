@@ -14,12 +14,14 @@ void pre_processamento(FILE *arq, char *nome_arq){
 
     /*Retira a extensão atual e coloca a nova .pre*/
     char aux[50];
-    for(size_t i = 0; i < strlen(nome_arq); i++){
+    // Procurar de traz pra frente pelo ponto
+    for(size_t i = strlen(nome_arq) - 1 ; i >= 0; i--){
 	    if(nome_arq[i] == '.'){
 	        nome_arq[i+1] = '\0';
+            break;
 	    }
     }
-    strcat(aux, nome_arq);
+    strcpy(aux, nome_arq);
     strcat(aux, "pre");
 
     /*Cria arquivo para escrita*/

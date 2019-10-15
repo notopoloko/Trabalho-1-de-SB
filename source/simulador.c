@@ -105,19 +105,3 @@ void simulacao(FILE *arq){
 
     free(enderecos);
 }
-
-int main(int argc, char** argv)
-{
-    FILE *arq;
-    arq = fopen(argv[1], "r");
-
-    if(arq == NULL){
-        printf("Erro ao abrir o arquivo!\n");
-        exit(1);
-    }
-
-    simulacao(arq);
-
-    fclose(arq);
-    return 0;
-}
