@@ -14,14 +14,12 @@ void pre_processamento(FILE *arq, char *nome_arq){
 
     /*Retira a extensão atual e coloca a nova .pre*/
     char aux[50];
-    // Procurar de traz pra frente pelo ponto
-    for(size_t i = strlen(nome_arq) - 1 ; i >= 0; i--){
+    for(int i = 0; i < sizeof(nome_arq); i++){
 	    if(nome_arq[i] == '.'){
 	        nome_arq[i+1] = '\0';
-            break;
 	    }
     }
-    strcpy(aux, nome_arq);
+    strcat(aux, nome_arq);
     strcat(aux, "pre");
 
     /*Cria arquivo para escrita*/
@@ -34,33 +32,34 @@ void pre_processamento(FILE *arq, char *nome_arq){
     char pen_token[50], linha[300], str[50], antepen_token[50];
     char *equ[10], *equ_trocado[10];
     for (int k = 0; k < 10; k++) {
-        equ[k] = (char*)malloc(50*sizeof(char));
+        equ[k] = malloc(50);
         strcpy(equ[k], "undefined");
-        equ_trocado[k] = (char*)malloc(50*sizeof(char));
+        equ_trocado[k] = malloc(50);
         strcpy(equ_trocado[k], "undefined");
     }
-    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0;
+    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0;
     int flag_comment = 0, flag_if = 0, flag_section = 0, flag_if_print = 0, flag_pula_linha = 0, flag_espaco = 0;
 
     while(fgets(linha, sizeof(linha), arq)){
+        num_token = 0;
         flag_enter = 0;
         char *token = strtok(linha, " \n\t");	// Separa cada token por espaco, nova linha e tab
         while(token){
 
-	        if(flag_espaco == 1)	// Responsável pelo espaço entre tokens no novo arquivo
-		        fprintf(pre_processado, " ");
-
-            ToUp(token);	// Torna os caracteres do token maiúsculos
-
             /*Tratamento de Comentários*/
             if(token[0] == ';')     // Retira comentários no formato: token ;comentario / ; comentario
                 break;
-            for(size_t i = 0; i < strlen(token); i++){ // Sinaliza comentários grudados ao token: token;comentario / token; comentario
+            for(int i = 0; i < strlen(token); i++){ // Sinaliza comentários grudados ao token: token;comentario / token; comentario
                 if(token[i] == ';'){
                     token[i] = '\0';
                     flag_comment = 1;
                 }
             }
+
+	        if(flag_espaco == 1)	// Responsável pelo espaço entre tokens no novo arquivo
+		        fprintf(pre_processado, " ");
+
+            ToUp(token);	// Torna os caracteres do token maiúsculos
 
             /*Tratamento de Hexadecimais*/
             if(token[0] == '0' && token[1] == 'X'){
@@ -73,7 +72,7 @@ void pre_processamento(FILE *arq, char *nome_arq){
                 flag_enter++;
             }
             for(int j = 0; j < 50; j++){
-                if(token[j] == ':')
+                if(token[j] == ':' && num_token == 0)
                     flag_enter = 1;
             }
 
@@ -138,6 +137,8 @@ void pre_processamento(FILE *arq, char *nome_arq){
             }
 
             token = strtok(NULL, " \n\t");
+
+            num_token++;
         }
         if(flag_enter == 1 && f != 1){
             fprintf(pre_processado, " ");
