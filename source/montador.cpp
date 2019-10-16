@@ -15,6 +15,7 @@ void Montador::mount ( std::string fileName) {
     if ( !arq.is_open() )
     {
         std::cerr << "Unable to open file to mount" << std::endl;
+        exit(0);
     }
 
     // Le todo o arquivo assumindo que
@@ -40,6 +41,7 @@ void Montador::mount ( std::string fileName) {
             std::cerr << "Sem parte de dados" << std::endl;
             exit(1);
         }
+        // std::string("SECTION TEXT").size() == std::string("SECTION TEXT").size() == 13
         if (textBegin > dataBegin) { // Parte de codigo vem depois da parte de dados
             code = content.substr(textBegin + 13);
             data = content.substr(dataBegin + 13, textBegin - dataBegin - 13);
@@ -65,48 +67,34 @@ void Montador::mount ( std::string fileName) {
 }
 
 void Montador::mountCode (const std::string &code) {
-    std::string token;
+    std::string token, line;
     std::stringstream code_(code);
     std::size_t currentPosition = 0;
 
-    while (code_ >> token)
-    {
+    while (std::getline(code_, line)) {
+        std::stringstream temp (line);
+        temp >> token;
         // Token pode ser uma label, um opcode ou variavel
         // TODO: Arrumar caso em que haja L1:ABCD:
         bool ehOpCode = codes.find(token) != codes.end();
-        if (ehOpCode) 
-        {
+        if (ehOpCode) {
             endCode.push_back(codes[token]);
             currentPosition++;
-            if ( !token.compare("COPY") ) // need to split and push two vars
-            {
-                code_ >> token;
-                std::string var1, var2;
-                std::stringstream temp(token);
-                std::getline(temp, var1, ',');
-                std::getline(temp, var2);
-
-                endCode.push_back( deps.find(var1) != deps.end() ? deps[var1] : -1 );
-                deps[var1] = currentPosition;
-                currentPosition++;
-
-                endCode.push_back( deps.find(var2) != deps.end() ? deps[var2] : -1 );
-                deps[var2] = currentPosition;
-                currentPosition++;
-            }
-            continue;
-            
-        } else { // Não é um opcode, pode ser label ou variavel
-            if (token.find(':') == std::string::npos ) // eh variavel
-            {
-                endCode.push_back( deps.find(token) != deps.end() ? deps[token] : -1 );
-                deps[token] = currentPosition;
-                currentPosition++;
-                continue;
-            } else { // eh label
+            Montador::dealInstruction(temp, token, currentPosition);
+        } else { // É label
+            if (token.find(':') == std::string::npos ) { // não identificado
+                std::cout << "Something is wrong: " << token << " is not recognized as label." << std::endl;
+            } else { // Achou uma label
                 token.pop_back(); // Remove ':'
                 labels[token] = currentPosition;
-                continue;
+                temp >> token;
+                if ( codes.find(token) != codes.end() ) {
+                    endCode.push_back(codes[token]);
+                    currentPosition++;
+                    Montador::dealInstruction(temp, token, currentPosition);
+                } else {
+                    std::cout << "Something is wrong: " << token << " is not recognized as instruction after a label." << std::endl;
+                }
             }
         }
     }
@@ -180,5 +168,36 @@ void Montador::mountData (const std::string &data) {
             endCode[currentPosition] = kv.second;
             currentPosition = temp;
         }
+    }
+}
+
+void Montador::dealInstruction ( std::stringstream &instructionLine, std::string instruction, std::size_t &currentPosition ) {
+    if ( !instruction.compare("COPY") ) { // need to split and push two vars
+        instructionLine >> instruction;
+        std::string var1, var2;
+        std::stringstream temp(instruction);
+        std::getline(temp, var1, ',');
+        std::getline(temp, var2);
+
+        // Tratar o caso de soma: COPY N1+3,N2+4
+
+        endCode.push_back( deps.find(var1) != deps.end() ? deps[var1] : -1 );
+        deps[var1] = currentPosition;
+        currentPosition++;
+
+        endCode.push_back( deps.find(var2) != deps.end() ? deps[var2] : -1 );
+        deps[var2] = currentPosition;
+        currentPosition++;
+    // Instrução STOP não precisa de argumento. As outras precisam
+    // Need to push one var
+    } else if ( instruction.compare("STOP") ) {
+        // Tratar o caso de soma: OPCODE N1+3
+        instructionLine >> instruction;
+        if (instruction.find('+') != std::string::npos) { // Possui uma soma
+            /* code */
+        } 
+        endCode.push_back( deps.find(instruction) != deps.end() ? deps[instruction] : -1 );
+        deps[instruction] = currentPosition;
+        currentPosition++;
     }
 }
