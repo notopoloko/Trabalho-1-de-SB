@@ -31,7 +31,7 @@ void simulacao(FILE *arq){
     }
     num_enderecos(arq, tamanho_arq, enderecos);
 
-    int num_operandos = 0, i = 0, acc = 0, input, end;
+    int num_operandos = 0, i = 0, acc = 0, input, end, jmp = 0, aux = 0;
     while(enderecos[i] != NULO){
         if(num_operandos == 0){
             if((enderecos[i] > 0 && enderecos[i] < 9) || (enderecos[i] > 9 && enderecos[i] < 14)){
@@ -44,6 +44,7 @@ void simulacao(FILE *arq){
         } else {
             while(num_operandos != 0){
                 end = enderecos[i];
+                aux = i;
                 switch(enderecos[i-1]){
                     case 1:
                         acc += enderecos[end];
@@ -59,18 +60,22 @@ void simulacao(FILE *arq){
                         break;
                     case 5:
                         i = enderecos[i]-1;
+                        jmp = 1;
                         break;
                     case 6:
                         if(acc < 0)
                             i = enderecos[i]-1;
+                        jmp = 1;
                         break;
                     case 7:
                         if(acc > 0)
                             i = enderecos[i]-1;
+                        jmp = 1;
                         break;
                     case 8:
                         if(acc == 0)
                             i = enderecos[i]-1;
+                        jmp = 1;
                         break;
                     case 9:
                         enderecos[enderecos[i+1]] = enderecos[end];
@@ -92,9 +97,15 @@ void simulacao(FILE *arq){
                     default:
                         break;
                 }
-                printf("ACC: %d\nEnd: %d\nValor no end: %d\n\n", acc, enderecos[i], enderecos[end]);
+                if(jmp == 0)
+                    printf("ACC: %d\nEnd: %d\nValor no end: %d\n\n", acc, enderecos[i], enderecos[end]);
+                else if(jmp == 1){
+                    printf("ACC: %d\nEnd: %d\nValor no end: %d\n\n", acc, enderecos[aux], enderecos[end]);
+                    jmp = 0;
+                }
                 if(num_operandos == 2){
                     i++;
+                    printf("ACC: %d\nEnd: %d\nValor no end: %d\n\n", acc, enderecos[i], enderecos[end]);
                     num_operandos--;
                 }
                 num_operandos--;
@@ -104,4 +115,20 @@ void simulacao(FILE *arq){
     }
 
     free(enderecos);
+}
+
+int main(int argc, char** argv)
+{
+    FILE *arq;
+    arq = fopen(argv[1], "r");
+
+    if(arq == NULL){
+        printf("Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
+    simulacao(arq);
+
+    fclose(arq);
+    return 0;
 }

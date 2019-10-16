@@ -14,8 +14,7 @@ void pre_processamento(FILE *arq, char *nome_arq){
 
     /*Retira a extensão atual e coloca a nova .pre*/
     char aux[50];
-    // Procurar de traz pra frente pelo ponto
-    for(size_t i = strlen(nome_arq) - 1 ; i >= 0; i--){
+    for(size_t i = strlen(nome_arq) - 1; i >= 0; i--){
 	    if(nome_arq[i] == '.'){
 	        nome_arq[i+1] = '\0';
             break;
@@ -39,18 +38,14 @@ void pre_processamento(FILE *arq, char *nome_arq){
         equ_trocado[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ_trocado[k], "undefined");
     }
-    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0;
+    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0;
     int flag_comment = 0, flag_if = 0, flag_section = 0, flag_if_print = 0, flag_pula_linha = 0, flag_espaco = 0;
 
     while(fgets(linha, sizeof(linha), arq)){
+        num_token = 0;
         flag_enter = 0;
         char *token = strtok(linha, " \n\t");	// Separa cada token por espaco, nova linha e tab
         while(token){
-
-	        if(flag_espaco == 1)	// Responsável pelo espaço entre tokens no novo arquivo
-		        fprintf(pre_processado, " ");
-
-            ToUp(token);	// Torna os caracteres do token maiúsculos
 
             /*Tratamento de Comentários*/
             if(token[0] == ';')     // Retira comentários no formato: token ;comentario / ; comentario
@@ -61,6 +56,11 @@ void pre_processamento(FILE *arq, char *nome_arq){
                     flag_comment = 1;
                 }
             }
+
+	        if(flag_espaco == 1)	// Responsável pelo espaço entre tokens no novo arquivo
+		        fprintf(pre_processado, " ");
+
+            ToUp(token);	// Torna os caracteres do token maiúsculos
 
             /*Tratamento de Hexadecimais*/
             if(token[0] == '0' && token[1] == 'X'){
@@ -73,7 +73,7 @@ void pre_processamento(FILE *arq, char *nome_arq){
                 flag_enter++;
             }
             for(int j = 0; j < 50; j++){
-                if(token[j] == ':')
+                if(token[j] == ':' && num_token == 0)
                     flag_enter = 1;
             }
 
@@ -138,6 +138,8 @@ void pre_processamento(FILE *arq, char *nome_arq){
             }
 
             token = strtok(NULL, " \n\t");
+
+            num_token++;
         }
         if(flag_enter == 1 && f != 1){
             fprintf(pre_processado, " ");
