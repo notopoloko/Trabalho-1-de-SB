@@ -25,31 +25,29 @@ void Montador::mount ( std::string fileName) {
     arq.close();
 
     std::string content = buffer.str();
-    std::size_t textBegin = content.find("SECTION TEXT"), textSize;
+    // Procurar pela parte de codigo e de dados
+    std::size_t textBegin = content.find("SECTION TEXT");
+    std::size_t dataBegin = content.find("SECTION DATA");
+
+    std::string code, data;
 
     // Tratamento da falta de parte de codigo aqui
-    if (textBegin == std::string::npos)
-    {
+    if (textBegin == std::string::npos) {
         std::cerr << "Sem parte de codigo" << std::endl;
-        exit(0);
-    }
-    std::size_t dataBegin = content.find("SECTION DATA"), dataSize;
-    // Tratamento da falta da parte de dados aqui
-    if ( dataBegin != std::string::npos) {
-        textSize = dataBegin - textBegin + 13; // std::string("SECTION TEXT").size()
     } else {
-        std::cerr << "Sem parte de dados" << std::endl;
+        // Tratamento da falta da parte de dados aqui
+        if (dataBegin == std::string::npos) {
+            std::cerr << "Sem parte de dados" << std::endl;
+            exit(1);
+        }
+        if (textBegin > dataBegin) { // Parte de codigo vem depois da parte de dados
+            code = content.substr(textBegin + 13);
+            data = content.substr(dataBegin + 13, textBegin - dataBegin - 13);
+        } else { // Parte de codigo vem antes da parte de dados
+            code = content.substr(textBegin + 13, dataBegin - textBegin - 13);
+            data = content.substr(dataBegin + 13);
+        }
     }
-    std::string code = content.substr(textBegin + 13, textSize);
-    dataBegin += 13; // std::string("SECTION DATA").size()
-    if (textBegin > dataBegin)
-    {
-        dataSize = textBegin - dataBegin;
-    } else
-    {
-        dataSize = std::string::npos;
-    }
-    std::string data = content.substr(dataBegin, dataSize);
 
     Montador::mountCode(code);
     Montador::mountData(data);
