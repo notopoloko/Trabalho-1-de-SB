@@ -14,12 +14,13 @@ void pre_processamento(FILE *arq, char *nome_arq){
 
     /*Retira a extensão atual e coloca a nova .pre*/
     char aux[50];
-    for(int i = 0; i < sizeof(nome_arq); i++){
+    for(size_t i = strlen(nome_arq) - 1; i >= 0; i--){
 	    if(nome_arq[i] == '.'){
 	        nome_arq[i+1] = '\0';
+            break;
 	    }
     }
-    strcat(aux, nome_arq);
+    strcpy(aux, nome_arq);
     strcat(aux, "pre");
 
     /*Cria arquivo para escrita*/
@@ -32,9 +33,9 @@ void pre_processamento(FILE *arq, char *nome_arq){
     char pen_token[50], linha[300], str[50], antepen_token[50];
     char *equ[10], *equ_trocado[10];
     for (int k = 0; k < 10; k++) {
-        equ[k] = malloc(50);
+        equ[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ[k], "undefined");
-        equ_trocado[k] = malloc(50);
+        equ_trocado[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ_trocado[k], "undefined");
     }
     int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0;
@@ -49,7 +50,7 @@ void pre_processamento(FILE *arq, char *nome_arq){
             /*Tratamento de Comentários*/
             if(token[0] == ';')     // Retira comentários no formato: token ;comentario / ; comentario
                 break;
-            for(int i = 0; i < strlen(token); i++){ // Sinaliza comentários grudados ao token: token;comentario / token; comentario
+            for(size_t i = 0; i < strlen(token); i++){ // Sinaliza comentários grudados ao token: token;comentario / token; comentario
                 if(token[i] == ';'){
                     token[i] = '\0';
                     flag_comment = 1;
