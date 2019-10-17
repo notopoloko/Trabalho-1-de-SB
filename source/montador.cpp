@@ -119,6 +119,7 @@ void Montador::mountData (const std::string &data) {
                     std::size_t numOfSpaces = std::stoi(token2);
                     while (numOfSpaces) {
                         endCode.push_back(0);
+                        currentLine++;
                         numOfSpaces--;
                     }
                 } catch(const std::exception& e) {
@@ -128,12 +129,14 @@ void Montador::mountData (const std::string &data) {
 
             } else { // Do contrario so ha um SPACE
                 endCode.push_back(0);
+                currentLine++;
             }
         } else if ( !token2.compare("CONST") ) { // Pode ser CONST
             if ( tempSS >> token2 ) { // Deve haver uma declaracao de constante
                 try {
                     std::size_t val = std::stoi(token2);
                     endCode.push_back(val);
+                    currentLine++;
                 } catch(const std::exception& e) {
                     std::cerr << "Erro na conversao para inteiro:\n" << e.what() << '\n';
                     continue;
@@ -148,27 +151,33 @@ void Montador::mountData (const std::string &data) {
         }
         // Resolver lista de pendencias com variaveis sem soma
         if (deps.find(token) != deps.end() ) {
-            std::uint16_t currentPosition = deps[token];
-            std::uint16_t temp;
-            while ( currentPosition != 65535 ) {
-                temp = endCode[currentPosition];
-                endCode[currentPosition] = currentLine;
-                currentPosition = temp;
+            for (auto &i : deps[token]) {
+                endCode[i] = currentLine + endCode[i];
             }
+            // std::uint16_t currentPosition = deps[token];
+            // std::uint16_t temp;
+            // while ( currentPosition != 65535 ) {
+            //     temp = endCode[currentPosition];
+            //     endCode[currentPosition] = currentLine;
+            //     currentPosition = temp;
+            // }
         } else {
             std::cout << token << " declared but not used in line " << currentLine << " in " + line << std::endl;
         }       
-        currentLine++;
     }
     // Resolver todas a labels
     for (const auto& kv: labels) {
-        std::uint16_t currentPosition = deps[kv.first];
-        std::uint16_t temp;
-        while ( currentPosition != 65535 ) {
-            temp = endCode[currentPosition];
-            endCode[currentPosition] = kv.second;
-            currentPosition = temp;
+        for (auto &i : deps[kv.first]) {
+            endCode[i] = kv.second;
         }
+        
+        // std::uint16_t currentPosition = deps[kv.first];
+        // std::uint16_t temp;
+        // while ( currentPosition != 65535 ) {
+        //     temp = endCode[currentPosition];
+        //     endCode[currentPosition] = kv.second;
+        //     currentPosition = temp;
+        // }
     }
 }
 
@@ -193,27 +202,39 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
             return;
         }
 
-        endCode.push_back( deps.find(var1) != deps.end() ? deps[var1] : -1 );
-        deps[var1] = currentPosition;
+        endCode.push_back( 0 );
+        deps[var1].push_back(currentPosition);
         currentPosition++;
 
-        endCode.push_back( deps.find(var2) != deps.end() ? deps[var2] : -1 );
-        deps[var2] = currentPosition;
+        endCode.push_back( 0 );
+        deps[var2].push_back(currentPosition);
         currentPosition++;
     // Instrução STOP não precisa de argumento. As outras precisam
     // Need to push one var
     } else if ( instruction.compare("STOP") ) {
         // Tratar o caso de soma: OPCODE N1+3
+        std::uint16_t val = 0;
         instructionLine >> instruction;
-
+        if (instruction.find('+') != std::string::npos ) {
+            std::stringstream temp(instruction);
+            std::string var, var2;
+            std::getline(temp, var, '+');
+            std::getline(temp, var2);
+            try { // Tentar tranformar para inteiro
+                val = std::stoi(var2);
+                instruction = var;
+            } catch(const std::exception& e) {
+                std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
+            }
+        }
         if ( !Montador::checkVar( instruction )) {
             std::cout << instruction << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
             endCode.pop_back();
             currentPosition--;
             return;
         }
-        endCode.push_back( deps.find(instruction) != deps.end() ? deps[instruction] : -1 );
-        deps[instruction] = currentPosition;
+        endCode.push_back( val );
+        deps[instruction].push_back(currentPosition);
         currentPosition++;
     }
 }

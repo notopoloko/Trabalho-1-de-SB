@@ -27,7 +27,7 @@ private:
         {"STOP", 14}
     };
     std::map <std::string, int> labels;
-    std::map <std::string, int> deps;
+    std::map < std::string, std::vector<std::uint16_t> > deps;
     std::vector<std::uint16_t> endCode;
 
     void mountCode(const std::string &code);
