@@ -33,6 +33,7 @@ private:
     void mountCode(const std::string &code);
     void mountData(const std::string &data);
     void dealInstruction (std::stringstream &instructionLine, std::string instruction, std::size_t &currentPosition);
+    bool checkVar(std::string &var);
 public:
     Montador();
     ~Montador();

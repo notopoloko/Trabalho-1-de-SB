@@ -146,7 +146,7 @@ void Montador::mountData (const std::string &data) {
             std::cout << "Objeto Voador Nao Identificado: " << token2 << std::endl;
             continue;
         }
-        // Resolver lista de pendencias
+        // Resolver lista de pendencias com variaveis sem soma
         if (deps.find(token) != deps.end() ) {
             std::uint16_t currentPosition = deps[token];
             std::uint16_t temp;
@@ -155,8 +155,9 @@ void Montador::mountData (const std::string &data) {
                 endCode[currentPosition] = currentLine;
                 currentPosition = temp;
             }
-        }
-        
+        } else {
+            std::cout << token << " declared but not used in line " << currentLine << " in " + line << std::endl;
+        }       
         currentLine++;
     }
     // Resolver todas a labels
@@ -178,8 +179,19 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
         std::stringstream temp(instruction);
         std::getline(temp, var1, ',');
         std::getline(temp, var2);
-
         // Tratar o caso de soma: COPY N1+3,N2+4
+        if ( !Montador::checkVar(var1) ) { // Variável com síbolo errado. Apaga instrução e retorna
+            std::cout << var1 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            endCode.pop_back();
+            currentPosition--;
+            return;
+        }
+        if ( !Montador::checkVar(var2)) {
+            std::cout << var2 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            endCode.pop_back();
+            currentPosition--;
+            return;
+        }
 
         endCode.push_back( deps.find(var1) != deps.end() ? deps[var1] : -1 );
         deps[var1] = currentPosition;
@@ -193,11 +205,33 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
     } else if ( instruction.compare("STOP") ) {
         // Tratar o caso de soma: OPCODE N1+3
         instructionLine >> instruction;
-        if (instruction.find('+') != std::string::npos) { // Possui uma soma
-            /* code */
-        } 
+
+        if ( !Montador::checkVar( instruction )) {
+            std::cout << instruction << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            endCode.pop_back();
+            currentPosition--;
+            return;
+        }
         endCode.push_back( deps.find(instruction) != deps.end() ? deps[instruction] : -1 );
         deps[instruction] = currentPosition;
         currentPosition++;
     }
+}
+
+/*
+Retorna verdadeiro se a variável estiver correta: com caracteres alfanuméricos ou com underscore
+Falso se começar com número ou tiver caracter especial como &, :, '
+*/
+bool Montador::checkVar(std::string &var) {
+    
+    for (size_t i = 0; i < var.size(); i++) {
+        if ( !std::isalnum( var[i] ) && '_' != var[i] ) {
+            return false;
+        }
+    }
+    if (var.size() > 0 && std::isdigit(var[0])) {
+        return false;
+    }
+    
+    return true;
 }
