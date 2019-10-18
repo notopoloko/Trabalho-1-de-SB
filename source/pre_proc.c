@@ -1,3 +1,5 @@
+#include "pre_proc.h"
+
 /*Função que torna todos os tokens maiúsculos*/
 void ToUp(char *p){
     while(*p){
