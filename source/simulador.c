@@ -19,7 +19,16 @@ void num_enderecos(FILE *arq, int tamanho_arq, int *enderecos){
     //free(linha);
 }
 
-void simulacao(FILE *arq){
+void simulacao(char *nome_arq){
+
+    FILE *arq;
+    arq = fopen(nome_arq, "r");
+
+    if(arq == NULL){
+        printf("Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
 
     fseek(arq, 0, SEEK_END);
     int tamanho_arq = ftell(arq);
@@ -115,20 +124,11 @@ void simulacao(FILE *arq){
     }
 
     free(enderecos);
+    fclose(arq);
 }
 
-// int main(int argc, char** argv)
-// {
-//     FILE *arq;
-//     arq = fopen(argv[1], "r");
-
-//     if(arq == NULL){
-//         printf("Erro ao abrir o arquivo!\n");
-//         exit(1);
-//     }
-
-//     simulacao(arq);
-
-//     fclose(arq);
-//     return 0;
-// }
+//int main(int argc, char** argv)
+//{
+//    simulacao(argv[1]);
+//    return 0;
+//}
