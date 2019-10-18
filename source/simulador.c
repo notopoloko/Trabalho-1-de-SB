@@ -19,7 +19,7 @@ void num_enderecos(FILE *arq, int tamanho_arq, int *enderecos){
     //free(linha);
 }
 
-void simulacao(char *nome_arq){
+void simulacao(const char *nome_arq){
 
     FILE *arq;
     arq = fopen(nome_arq, "r");

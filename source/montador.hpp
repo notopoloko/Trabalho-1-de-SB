@@ -34,10 +34,11 @@ private:
     void mountData(const std::string &data);
     void dealInstruction (std::stringstream &instructionLine, std::string instruction, std::size_t &currentPosition);
     bool checkVar(std::string &var);
+    std::size_t checkIfThereIsSum( std::string &variable, std::stringstream &instructionLine );
 public:
     Montador();
     ~Montador();
 
-    void mount ( std::string fileName);
+    std::string mount ( std::string fileName);
 };
 

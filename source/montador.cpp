@@ -8,7 +8,7 @@ Montador::~Montador()
 {
 }
 
-void Montador::mount ( std::string fileName) {
+std::string Montador::mount ( std::string fileName) {
     std::ifstream arq;
 
     arq.open(fileName);
@@ -62,8 +62,9 @@ void Montador::mount ( std::string fileName) {
         std::copy(endCode.begin(), endCode.end(), output_iterator);
     } else {
         std::cerr << "Unable to open file to dump" << std::endl;
+        return nullptr;
     }
-    
+    return fileName;
 }
 
 void Montador::mountCode (const std::string &code) {
@@ -104,6 +105,7 @@ void Montador::mountData (const std::string &data) {
     std::string token, token2, line;
     std::stringstream data_(data);
     std::size_t currentLine = endCode.size();
+    std::size_t currentTokenLine = currentLine;
 
     while (std::getline(data_, line))
     {
@@ -152,7 +154,7 @@ void Montador::mountData (const std::string &data) {
         // Resolver lista de pendencias com variaveis sem soma
         if (deps.find(token) != deps.end() ) {
             for (auto &i : deps[token]) {
-                endCode[i] = currentLine + endCode[i];
+                endCode[i] = currentTokenLine + endCode[i];
             }
             // std::uint16_t currentPosition = deps[token];
             // std::uint16_t temp;
@@ -163,7 +165,8 @@ void Montador::mountData (const std::string &data) {
             // }
         } else {
             std::cout << token << " declared but not used in line " << currentLine << " in " + line << std::endl;
-        }       
+        }
+        currentTokenLine = currentLine;
     }
     // Resolver todas a labels
     for (const auto& kv: labels) {
@@ -181,7 +184,27 @@ void Montador::mountData (const std::string &data) {
     }
 }
 
+std::size_t Montador::checkIfThereIsSum( std::string &variable, std::stringstream &instructionLine ) {
+    std::size_t val = 0;
+    std::string var1, varTemp1;
+
+    if (variable.find('+') != std::string::npos ) {
+        std::stringstream temp(variable);
+        std::getline(temp, variable, '+');
+        std::getline(temp, varTemp1);
+        try { // Tentar tranformar para inteiro
+            val = std::stoi(varTemp1);
+        } catch(const std::exception& e) {
+            std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
+            return 0;
+        }
+    }
+    return val;
+}
+
 void Montador::dealInstruction ( std::stringstream &instructionLine, std::string instruction, std::size_t &currentPosition ) {
+    std::size_t val = 0, val1 = 0;
+
     if ( !instruction.compare("COPY") ) { // need to split and push two vars
         instructionLine >> instruction;
         std::string var1, var2;
@@ -189,6 +212,20 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
         std::getline(temp, var1, ',');
         std::getline(temp, var2);
         // Tratar o caso de soma: COPY N1+3,N2+4
+        val = Montador::checkIfThereIsSum(var1, instructionLine);
+        val1 = Montador::checkIfThereIsSum(var2, instructionLine);
+
+        // if (var1.find('+') != std::string::npos ) {
+        //     std::stringstream temp(instruction);
+        //     std::string varTemp1;
+        //     std::getline(temp, var1, '+');
+        //     std::getline(temp, varTemp1);
+        //     try { // Tentar tranformar para inteiro
+        //         val = std::stoi(varTemp1);
+        //     } catch(const std::exception& e) {
+        //         std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
+        //     }
+        // }
         if ( !Montador::checkVar(var1) ) { // Variável com síbolo errado. Apaga instrução e retorna
             std::cout << var1 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
             endCode.pop_back();
@@ -202,32 +239,33 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
             return;
         }
 
-        endCode.push_back( 0 );
+        endCode.push_back( val );
         deps[var1].push_back(currentPosition);
         currentPosition++;
 
-        endCode.push_back( 0 );
+        endCode.push_back( val1 );
         deps[var2].push_back(currentPosition);
         currentPosition++;
     // Instrução STOP não precisa de argumento. As outras precisam
     // Need to push one var
     } else if ( instruction.compare("STOP") ) {
         // Tratar o caso de soma: OPCODE N1+3
-        std::uint16_t val = 0;
         instructionLine >> instruction;
-        if (instruction.find('+') != std::string::npos ) {
-            std::stringstream temp(instruction);
-            std::string var, var2;
-            std::getline(temp, var, '+');
-            std::getline(temp, var2);
-            try { // Tentar tranformar para inteiro
-                val = std::stoi(var2);
-                instruction = var;
-            } catch(const std::exception& e) {
-                std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
-            }
-        }
-        if ( !Montador::checkVar( instruction )) {
+        val = Montador::checkIfThereIsSum(instruction, instructionLine);
+
+        // if (instruction.find('+') != std::string::npos ) {
+        //     std::stringstream temp(instruction);
+        //     std::string var, var2;
+        //     std::getline(temp, var, '+');
+        //     std::getline(temp, var2);
+        //     try { // Tentar tranformar para inteiro
+        //         val = std::stoi(var2);
+        //         instruction = var;
+        //     } catch(const std::exception& e) {
+        //         std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
+        //     }
+        // }
+        if ( !Montador::checkVar( instruction ) ) {
             std::cout << instruction << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
             endCode.pop_back();
             currentPosition--;

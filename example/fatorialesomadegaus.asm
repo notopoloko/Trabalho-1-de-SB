@@ -58,7 +58,7 @@ RET2:                               ;
     
 MULT_N1:
     LOAD AUX                        ; Carrega valor acumulado
-    MUL N1                          ; Multiplica por N1
+    MULT N1                          ; Multiplica por N1
     STORE AUX                       ; e salva o resultado
     
     LOAD N1                         ; Subtrai 1 de N1

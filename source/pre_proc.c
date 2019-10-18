@@ -47,7 +47,7 @@ const char * pre_processamento(char *nome_arq){
         equ_trocado[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ_trocado[k], "undefined");
     }
-    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0, if_aux = 0;
+    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0;
     int flag_comment = 0, flag_if = 0, flag_section = 0, flag_if_print = 0, flag_pula_linha = 0, flag_espaco = 0;
 
     while(fgets(linha, sizeof(linha), arq)){
@@ -115,7 +115,7 @@ const char * pre_processamento(char *nome_arq){
                     f = 1;                  /*Tentar corrigir o erro do if com label e enter*/
                     break;
                 }
-                for(int i = 0; i < strlen(token); i++){
+                for(size_t i = 0; i < strlen(token); i++){
                     if(token[i] == ':' && num_token == 0){
                         flag_if = 2;
                     }
