@@ -29,6 +29,7 @@ const char * pre_processamento(char *nome_arq){
             break;
 	    }
     }
+
     strcpy(aux, nome_arq);
     strcat(aux, "pre");
 
@@ -40,6 +41,8 @@ const char * pre_processamento(char *nome_arq){
     }
 
     char pen_token[50], linha[300], str[50], antepen_token[50];
+    strcpy(pen_token, "undefined");
+    strcpy(antepen_token, "undefined");
     char *equ[10], *equ_trocado[10];
     for (int k = 0; k < 10; k++) {
         equ[k] = (char*)malloc(50*sizeof(char));
@@ -55,7 +58,6 @@ const char * pre_processamento(char *nome_arq){
         flag_enter = 0;
         char *token = strtok(linha, " \n\t");	// Separa cada token por espaco, nova linha e tab
         while(token){
-
             /*Tratamento de Comentários*/
             if(token[0] == ';')     // Retira comentários no formato: token ;comentario / ; comentario
                 break;
@@ -82,8 +84,12 @@ const char * pre_processamento(char *nome_arq){
                 flag_enter++;
             }
             for(int j = 0; j < 50; j++){
-                if(token[j] == ':' && num_token == 0)
+                if(token[j] == '\0')
+                    break;
+                if(token[j] == ':' && num_token == 0){
                     flag_enter = 1;
+                    break;
+                }
             }
 
             /*Tratamento de EQU*/
@@ -101,6 +107,8 @@ const char * pre_processamento(char *nome_arq){
                 equ_total++;
                 int tem_dp = 0;
                 for(int i = 0; i < 50; i++){
+                    if(antepen_token[i] == '\0')
+                        break;
                     if(antepen_token[i] == ':')
                         tem_dp = 1;
                 }
@@ -115,7 +123,7 @@ const char * pre_processamento(char *nome_arq){
                     f = 1;                  /*Tentar corrigir o erro do if com label e enter*/
                     break;
                 }
-                for(size_t i = 0; i < strlen(token); i++){
+                for(int i = 0; i < strlen(token); i++){
                     if(token[i] == ':' && num_token == 0){
                         flag_if = 2;
                     }
