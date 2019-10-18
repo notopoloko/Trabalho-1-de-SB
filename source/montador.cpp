@@ -12,8 +12,7 @@ std::string Montador::mount ( std::string fileName) {
     std::ifstream arq;
 
     arq.open(fileName);
-    if ( !arq.is_open() )
-    {
+    if ( !arq.is_open() ) {
         std::cerr << "Unable to open file to mount" << std::endl;
         exit(0);
     }
@@ -55,16 +54,19 @@ std::string Montador::mount ( std::string fileName) {
     Montador::mountData(data);
 
     // Dump file
-    fileName.replace( fileName.find_last_of('.'), std::string::npos, ".obj" );
-    std::ofstream outputFile(fileName);
-    if (outputFile.is_open()) {
-        std::ostream_iterator<std::uint16_t> output_iterator(outputFile, " ");
-        std::copy(endCode.begin(), endCode.end(), output_iterator);
-    } else {
-        std::cerr << "Unable to open file to dump" << std::endl;
-        return nullptr;
+    if (codeIsFineToGo) {
+        fileName.replace( fileName.find_last_of('.'), std::string::npos, ".obj" );
+        std::ofstream outputFile(fileName);
+        if (outputFile.is_open()) {
+            std::ostream_iterator<std::uint16_t> output_iterator(outputFile, " ");
+            std::copy(endCode.begin(), endCode.end(), output_iterator);
+        } else {
+            std::cerr << "Unable to open file to dump" << std::endl;
+            return "";
+        }
+        return fileName;
     }
-    return fileName;
+    return "";
 }
 
 void Montador::mountCode (const std::string &code) {
@@ -82,9 +84,10 @@ void Montador::mountCode (const std::string &code) {
             endCode.push_back(codes[token]);
             currentPosition++;
             Montador::dealInstruction(temp, token, currentPosition);
-        } else { // É label
+        } else { // Pode ser uma label
             if (token.find(':') == std::string::npos ) { // não identificado
-                std::cout << "Something is wrong: " << token << " is not recognized as label." << std::endl;
+                std::cout << token << " in line " << currentPosition << " " + line << " is not a valid instruction."<< std::endl;
+                currentPosition++;
             } else { // Achou uma label
                 token.pop_back(); // Remove ':'
                 labels[token] = currentPosition;
@@ -140,11 +143,13 @@ void Montador::mountData (const std::string &data) {
                     endCode.push_back(val);
                     currentLine++;
                 } catch(const std::exception& e) {
-                    std::cerr << "Erro na conversao para inteiro:\n" << e.what() << '\n';
+                    std::cerr << "Erro na conversao de" << token2 << " para inteiro:\n" << e.what() << '\n';
+                    codeIsFineToGo = false;
                     continue;
                 }
             } else {
                 std::cerr << "CONST sem numero" << std::endl;
+                codeIsFineToGo = false;
                 continue;
             }
         } else {
@@ -156,13 +161,6 @@ void Montador::mountData (const std::string &data) {
             for (auto &i : deps[token]) {
                 endCode[i] = currentTokenLine + endCode[i];
             }
-            // std::uint16_t currentPosition = deps[token];
-            // std::uint16_t temp;
-            // while ( currentPosition != 65535 ) {
-            //     temp = endCode[currentPosition];
-            //     endCode[currentPosition] = currentLine;
-            //     currentPosition = temp;
-            // }
         } else {
             std::cout << token << " declared but not used in line " << currentLine << " in " + line << std::endl;
         }
@@ -173,14 +171,6 @@ void Montador::mountData (const std::string &data) {
         for (auto &i : deps[kv.first]) {
             endCode[i] = kv.second;
         }
-        
-        // std::uint16_t currentPosition = deps[kv.first];
-        // std::uint16_t temp;
-        // while ( currentPosition != 65535 ) {
-        //     temp = endCode[currentPosition];
-        //     endCode[currentPosition] = kv.second;
-        //     currentPosition = temp;
-        // }
     }
 }
 
@@ -192,10 +182,20 @@ std::size_t Montador::checkIfThereIsSum( std::string &variable, std::stringstrea
         std::stringstream temp(variable);
         std::getline(temp, variable, '+');
         std::getline(temp, varTemp1);
+        for (auto &i : varTemp1) {
+            if (!std::isdigit(i)) {
+                std::cout << varTemp1 << " cannot be converted to a valid index in " << instructionLine.str() << std::endl;
+                codeIsFineToGo = false;
+                return 0;
+            }
+        }
+        
         try { // Tentar tranformar para inteiro
-            val = std::stoi(varTemp1);
+            val = std::stoi(varTemp1, nullptr, 10);
         } catch(const std::exception& e) {
-            std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
+            std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction. Index " << varTemp1 << 
+            "could not be converted to integer\n" << e.what() << '\n';
+            codeIsFineToGo = false;
             return 0;
         }
     }
@@ -214,28 +214,14 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
         // Tratar o caso de soma: COPY N1+3,N2+4
         val = Montador::checkIfThereIsSum(var1, instructionLine);
         val1 = Montador::checkIfThereIsSum(var2, instructionLine);
-
-        // if (var1.find('+') != std::string::npos ) {
-        //     std::stringstream temp(instruction);
-        //     std::string varTemp1;
-        //     std::getline(temp, var1, '+');
-        //     std::getline(temp, varTemp1);
-        //     try { // Tentar tranformar para inteiro
-        //         val = std::stoi(varTemp1);
-        //     } catch(const std::exception& e) {
-        //         std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
-        //     }
-        // }
         if ( !Montador::checkVar(var1) ) { // Variável com síbolo errado. Apaga instrução e retorna
             std::cout << var1 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
-            endCode.pop_back();
-            currentPosition--;
+            codeIsFineToGo = false;
             return;
         }
         if ( !Montador::checkVar(var2)) {
             std::cout << var2 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
-            endCode.pop_back();
-            currentPosition--;
+            codeIsFineToGo = false;
             return;
         }
 
@@ -251,24 +237,12 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
     } else if ( instruction.compare("STOP") ) {
         // Tratar o caso de soma: OPCODE N1+3
         instructionLine >> instruction;
-        val = Montador::checkIfThereIsSum(instruction, instructionLine);
+        // Make sure that only one argument is passed to check
 
-        // if (instruction.find('+') != std::string::npos ) {
-        //     std::stringstream temp(instruction);
-        //     std::string var, var2;
-        //     std::getline(temp, var, '+');
-        //     std::getline(temp, var2);
-        //     try { // Tentar tranformar para inteiro
-        //         val = std::stoi(var2);
-        //         instruction = var;
-        //     } catch(const std::exception& e) {
-        //         std::cerr << "Error in transform "<< instructionLine.str() << " to a valid instruction" << e.what() << '\n';
-        //     }
-        // }
+        val = Montador::checkIfThereIsSum(instruction, instructionLine);
         if ( !Montador::checkVar( instruction ) ) {
             std::cout << instruction << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
-            endCode.pop_back();
-            currentPosition--;
+            codeIsFineToGo = false;
             return;
         }
         endCode.push_back( val );
@@ -282,9 +256,8 @@ Retorna verdadeiro se a variável estiver correta: com caracteres alfanuméricos
 Falso se começar com número ou tiver caracter especial como &, :, '
 */
 bool Montador::checkVar(std::string &var) {
-    
-    for (size_t i = 0; i < var.size(); i++) {
-        if ( !std::isalnum( var[i] ) && '_' != var[i] ) {
+    for (const auto &i : var) {
+        if ( !std::isalnum( i ) && '_' != i ) {
             return false;
         }
     }

@@ -10,6 +10,7 @@ class Montador
 {
 private:
     const std::string fileName;
+    bool codeIsFineToGo = true;
     std::map <std::string, std::uint16_t> codes = {
         {"ADD", 1},
         {"SUB", 2},
