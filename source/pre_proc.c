@@ -9,11 +9,20 @@ void ToUp(char *p){
 }
 
 /*Função responsavel pelo pré-processamento*/
-void pre_processamento(FILE *arq, char *nome_arq){
+const char * pre_processamento(char *nome_arq){
+
+    FILE *arq;
+    arq = fopen(nome_arq, "r");
+
+    if(arq == NULL){
+        printf("Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
     printf("Pre-processamento:\n");
 
     /*Retira a extensão atual e coloca a nova .pre*/
-    char aux[50];
+    static char aux[50];
     for(size_t i = strlen(nome_arq) - 1; i >= 0; i--){
 	    if(nome_arq[i] == '.'){
 	        nome_arq[i+1] = '\0';
@@ -38,7 +47,7 @@ void pre_processamento(FILE *arq, char *nome_arq){
         equ_trocado[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ_trocado[k], "undefined");
     }
-    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0;
+    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0, if_aux = 0;
     int flag_comment = 0, flag_if = 0, flag_section = 0, flag_if_print = 0, flag_pula_linha = 0, flag_espaco = 0;
 
     while(fgets(linha, sizeof(linha), arq)){
@@ -100,8 +109,19 @@ void pre_processamento(FILE *arq, char *nome_arq){
             }
 
             /*Tratamento de IF*/
-            if(flag_if == 1){				// Pula a linha caso o IF seja acionado
-                flag_if = 0;
+            if(flag_if == 1 || flag_if == 2){				// Pula a linha caso o IF seja acionado
+                if(flag_if == 2){
+                    flag_if = 0;
+                    f = 1;                  /*Tentar corrigir o erro do if com label e enter*/
+                    break;
+                }
+                for(int i = 0; i < strlen(token); i++){
+                    if(token[i] == ':' && num_token == 0){
+                        flag_if = 2;
+                    }
+                }
+                if(flag_if != 2)
+                    flag_if = 0;
                 f = 1;
                 break;
             }
@@ -160,4 +180,7 @@ void pre_processamento(FILE *arq, char *nome_arq){
     }
 
     fclose(pre_processado);
+    fclose(arq);
+
+    return aux;
 }
