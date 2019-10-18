@@ -3,4 +3,4 @@
 #include <string.h>
 #include <ctype.h>
 
-void pre_processamento(char *nome_arq);
+const char * pre_processamento(char *nome_arq);
