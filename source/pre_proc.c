@@ -1,5 +1,3 @@
-#include "pre_proc.h"
-
 /*Função que torna todos os tokens maiúsculos*/
 void ToUp(char *p){
     while(*p){
@@ -47,12 +45,10 @@ const char * pre_processamento(char *nome_arq){
     for (int k = 0; k < 10; k++) {
         equ[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ[k], "undefined");
-        strcat(equ[k], "\0");
         equ_trocado[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ_trocado[k], "undefined");
-        strcat(equ_trocado[k], "\0");
     }
-    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0, if_aux = 0, cont = 0;
+    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0, if_aux = 0;
     int flag_comment = 0, flag_if = 0, flag_section = 0, flag_if_print = 0, flag_pula_linha = 0, flag_espaco = 0;
 
     while(fgets(linha, sizeof(linha), arq)){
