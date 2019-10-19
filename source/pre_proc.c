@@ -50,12 +50,13 @@ const char * pre_processamento(char *nome_arq){
         equ_trocado[k] = (char*)malloc(50*sizeof(char));
         strcpy(equ_trocado[k], "undefined");
     }
-    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0;
+    int equ_total = 0, num_linha = 1, flag_enter = 0, f = 0, num_token = 0, f_aux = 0;
     int flag_comment = 0, flag_if = 0, flag_section = 0, flag_if_print = 0, flag_pula_linha = 0, flag_espaco = 0;
 
     while(fgets(linha, sizeof(linha), arq)){
         num_token = 0;
         flag_enter = 0;
+
         char *token = strtok(linha, " \n\t");	// Separa cada token por espaco, nova linha e tab
         while(token){
             /*Tratamento de Comentários*/
@@ -99,7 +100,12 @@ const char * pre_processamento(char *nome_arq){
                 }
             }
 
+            if(!strcmp(token, "EQU")){      // Auxilia pra detectar erro sintatico de ter nada no EQU
+                f_aux = 1;
+            }
+
             if(!strcmp(pen_token, "EQU")){			// Detecta o EQU e recebe os tokens equivalentes
+                f_aux = 0;
                 strcpy(str, antepen_token);
                 str[(strlen(str)-1)] = '\0';
                 strcpy(equ[equ_total], str);
@@ -112,7 +118,19 @@ const char * pre_processamento(char *nome_arq){
                     if(antepen_token[i] == ':')
                         tem_dp = 1;
                 }
-                if(tem_dp == 0)
+                if(tem_dp == 0)     // Detecta erro se falta : na label do EQU
+                    printf("Erro sintatico na linha %d\n", num_linha);
+                tem_dp == 1;    
+                for(int i = 0; i < 50; i++){
+                    if(token[i] == '\0')
+                        break;
+                    if((int)token[i] < 48 || (int)token[i] > 57){
+                        tem_dp = 0;
+                        if(i == 0 && (int)token[i] == 45)
+                            tem_dp = 1;
+                    }
+                }
+                if(tem_dp == 0)     // Detecta erro se EQU eh uma string ao inves de numero
                     printf("Erro sintatico na linha %d\n", num_linha);
             }
 
@@ -120,7 +138,7 @@ const char * pre_processamento(char *nome_arq){
             if(flag_if == 1 || flag_if == 2){				// Pula a linha caso o IF seja acionado
                 if(flag_if == 2){
                     flag_if = 0;
-                    f = 1;                  /*Tentar corrigir o erro do if com label e enter*/
+                    f = 1;
                     break;
                 }
                 for(int i = 0; i < strlen(token); i++){
@@ -139,6 +157,9 @@ const char * pre_processamento(char *nome_arq){
 
             if(!strcmp(pen_token, "IF")){	// Detecta o IF
                 if(!strcmp(token, "0")){
+                    flag_if = 1;
+                } else if(strcmp(token, "1") && strcmp(token, "0")){
+                    printf("Erro sintatico na linha %d\n", num_linha);
                     flag_if = 1;
                 }
 		        flag_if_print = 2;
@@ -176,9 +197,17 @@ const char * pre_processamento(char *nome_arq){
 	    if(flag_pula_linha == 1 && flag_enter != 1)	// Controle da escrita de nova linha no arquivo
 	        fprintf(pre_processado, "\n");
 
+        strcpy(pen_token, "undefined");
+        strcpy(antepen_token, "undefined");
+
     	flag_pula_linha = 0;
     	flag_espaco = 0;
         f = 0;
+
+        if(f_aux == 1)        // Detecta se tem nada no EQU
+            printf("Erro sintatico na linha %d\n", num_linha);
+
+        f_aux = 0;
         num_linha++;
     }
 
