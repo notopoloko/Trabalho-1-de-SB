@@ -34,11 +34,11 @@ std::string Montador::mount ( std::string fileName) {
     // Tratamento da falta de parte de codigo aqui
     if (textBegin == std::string::npos) {
         std::cerr << "Sem parte de codigo" << std::endl;
+        exit(1);
     } else {
         // Tratamento da falta da parte de dados aqui
         if (dataBegin == std::string::npos) {
             std::cerr << "Sem parte de dados" << std::endl;
-            exit(1);
         }
         // std::string("SECTION TEXT").size() == std::string("SECTION TEXT").size() == 13
         if (textBegin > dataBegin) { // Parte de codigo vem depois da parte de dados
@@ -215,12 +215,12 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
         val = Montador::checkIfThereIsSum(var1, instructionLine);
         val1 = Montador::checkIfThereIsSum(var2, instructionLine);
         if ( !Montador::checkVar(var1) ) { // Variável com síbolo errado. Apaga instrução e retorna
-            std::cout << var1 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            std::cout << "Sintax error: " << var1 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
             codeIsFineToGo = false;
             return;
         }
         if ( !Montador::checkVar(var2)) {
-            std::cout << var2 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            std::cout << "Sintax error: " << var2 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
             codeIsFineToGo = false;
             return;
         }
@@ -241,7 +241,7 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
 
         val = Montador::checkIfThereIsSum(instruction, instructionLine);
         if ( !Montador::checkVar( instruction ) ) {
-            std::cout << instruction << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            std::cout << "Sintax error" << instruction << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
             codeIsFineToGo = false;
             return;
         }

@@ -6,6 +6,27 @@
 #include <sstream>
 #include <vector>
 
+/* Erros a serem detectados
+– declarações e rótulos ausentes;
+– declarações e rótulos repetidos;
+– pulo para rótulos inválidos;
+– pulo para seção errada;
+– diretivas inválidas;
+– instruções inválidas;
+– diretivas ou instruções na seção errada;
+– divisão por zero (para constante);
+– instruções com a quantidade de operando inválida;
+– instruções com o tipo de operando inválido;
+– tokens inválidos;
+– dois rótulos na mesma linha;
+– seção TEXT faltante;
+– seção inválida;
+– tipo de argumento inválido;
+– modificação de um valor constante;
+– acessar posição não reservada pelo SPACE (exemplo accesar SPACE+4,
+sendo que somente foi reservada uma posição)
+*/
+
 class Montador
 {
 private:
