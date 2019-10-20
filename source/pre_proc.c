@@ -142,10 +142,10 @@ const char * pre_processamento(char *nome_arq){
                     strcpy(auxiliar,"undefined");
                     int cont = 0, troca = 0, num_troca = 0;
                     while(copy){
+                        if(cont == 0){
+                            strcpy(auxiliar,copy);
+                        }
                         for(int i = 0; i < equ_total; i++){
-                            if(cont == 0){
-                                strcpy(auxiliar,copy);
-                            }
                             if(cont == 1 && !strcmp(copy, equ[num_troca]) && !strcmp(auxiliar, equ[num_troca])){
                                 sprintf(token, "%s,%s", equ_trocado[num_troca], equ_trocado[num_troca]);
                                 break;
