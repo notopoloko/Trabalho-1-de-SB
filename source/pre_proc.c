@@ -120,7 +120,7 @@ const char * pre_processamento(char *nome_arq){
                 }
                 if(tem_dp == 0)     // Detecta erro se falta : na label do EQU
                     printf("Erro sintatico na linha %d\n", num_linha);
-                tem_dp == 1;    
+                tem_dp = 1;    
                 for(int i = 0; i < 50; i++){
                     if(token[i] == '\0')
                         break;
