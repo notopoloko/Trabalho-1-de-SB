@@ -140,24 +140,34 @@ const char * pre_processamento(char *nome_arq){
                     char *copy = strtok(token, ",");
                     char auxiliar[50];
                     strcpy(auxiliar,"undefined");
-                    int cont = 0, troca = 0;
+                    int cont = 0, troca = 0, num_troca = 0;
                     while(copy){
                         for(int i = 0; i < equ_total; i++){
                             if(cont == 0){
                                 strcpy(auxiliar,copy);
                             }
+                            if(cont == 1 && !strcmp(copy, equ[num_troca]) && !strcmp(auxiliar, equ[num_troca])){
+                                sprintf(token, "%s,%s", equ_trocado[num_troca], equ_trocado[num_troca]);
+                                break;
+                            }
                             if(troca == 1){
-                                sprintf(token, "%s,%s", equ_trocado[i], copy);
+                                sprintf(token, "%s,%s", equ_trocado[num_troca], copy);
+                                break;
                             }
                             if(!strcmp(copy, equ[i]) && cont == 0){
                                 troca = 1;
+                                num_troca = i;
+                                break;
                             } else if(!strcmp(copy, equ[i]) && cont == 1){
                                 troca = 2;
+                                num_troca = i;
                             }
                             if(troca == 2){
-                                sprintf(token, "%s,%s", auxiliar, equ_trocado[i]);
+                                sprintf(token, "%s,%s", auxiliar, equ_trocado[num_troca]);
                             }
                         }
+                        if(cont == 1 && troca == 0)
+                            sprintf(token, "%s,%s", auxiliar, copy);
                         cont++;
                         copy = strtok(NULL, ",");
                     }
