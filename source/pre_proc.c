@@ -137,39 +137,34 @@ const char * pre_processamento(char *nome_arq){
 
             for(int i = 0; i < strlen(token); i++){     // Caso o simbolo do EQU esteja em um COPY
                 if(token[i] == ','){
+                    int num_virgula = 0;
+                    for(int i = 0; i < strlen(token); i++){
+                        if(token[i] == ',')
+                            num_virgula++;
+                    }
                     char *copy = strtok(token, ",");
                     char auxiliar[50];
-                    strcpy(auxiliar,"undefined");
-                    int cont = 0, troca = 0, num_troca = 0;
+                    strcpy(auxiliar,"");
+                    int cont = 0, troca = 0;
                     while(copy){
-                        if(cont == 0){
-                            strcpy(auxiliar,copy);
-                        }
+                        troca = 0;
+                        if(cont > 0)
+                            strcat(auxiliar, ",");
                         for(int i = 0; i < equ_total; i++){
-                            if(cont == 1 && !strcmp(copy, equ[num_troca]) && !strcmp(auxiliar, equ[num_troca])){
-                                sprintf(token, "%s,%s", equ_trocado[num_troca], equ_trocado[num_troca]);
-                                break;
-                            }
-                            if(troca == 1){
-                                sprintf(token, "%s,%s", equ_trocado[num_troca], copy);
-                                break;
-                            }
-                            if(!strcmp(copy, equ[i]) && cont == 0){
+                            if(!strcmp(copy, equ[i])){
+                                strcat(auxiliar, equ_trocado[i]);
                                 troca = 1;
-                                num_troca = i;
-                                break;
-                            } else if(!strcmp(copy, equ[i]) && cont == 1){
-                                troca = 2;
-                                num_troca = i;
-                            }
-                            if(troca == 2){
-                                sprintf(token, "%s,%s", auxiliar, equ_trocado[num_troca]);
                             }
                         }
-                        if(cont == 1 && troca == 0)
-                            sprintf(token, "%s,%s", auxiliar, copy);
+                        if(troca == 0)
+                            strcat(auxiliar, copy);
                         cont++;
                         copy = strtok(NULL, ",");
+                    }
+                    strcpy(token, auxiliar);
+                    while(num_virgula > cont-1){
+                        strcat(token, ",");
+                        cont++;
                     }
                 }
             }
