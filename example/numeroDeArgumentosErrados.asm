@@ -1,17 +1,17 @@
 	TRIANGULO: EQU 1
 SECTION TEXT
-		INPUT		B
+		INPUT					;Instrução INPUT sem argumentos
 		INPUT		H
-		LOAD		
+		LOAD		B
 		MULT		H
 		IF TRIANGULO
 		DIV		    DOIS
 		STORE		R
 		OUTPUT	    R
-        COPY        B,H,C
-        COPY        B,H,
-
-		STOP
+        copy        B,H,C		;Instrução COPY com argumentos errados
+        copy        b,h,		;Instrução COPY com argumentos errados
+		STOP		
+		STOP		R			;Instrução STOP com argumento
 SECTION DATA
 	B:		SPACE
 	H:		SPACE

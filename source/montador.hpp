@@ -9,10 +9,10 @@
 /* Erros a serem detectados
 – declarações e rótulos ausentes; Ok
 – declarações e rótulos repetidos; Ok
-– pulo para rótulos inválidos;
-– pulo para seção errada;
-– diretivas inválidas;
-– instruções inválidas;
+– pulo para rótulos inválidos; ~
+– pulo para seção errada; Ok
+– diretivas inválidas; ~
+– instruções inválidas; ~
 – diretivas ou instruções na seção errada;
 – divisão por zero (para constante);
 – instruções com a quantidade de operando inválida; Ok
@@ -22,9 +22,9 @@
 – seção TEXT faltante; OK
 – seção inválida;
 – tipo de argumento inválido;
-– modificação de um valor constante;
+– modificação de um valor constante; Ok
 – acessar posição não reservada pelo SPACE (exemplo accesar SPACE+4,
-sendo que somente foi reservada uma posição)
+sendo que somente foi reservada uma posição) Ok
 */
 
 class Montador
@@ -57,6 +57,7 @@ private:
     void mountData(const std::string &data);
     void dealInstruction (std::stringstream &instructionLine, std::string instruction, std::size_t &currentPosition);
     bool checkVar(std::string &var);
+    bool checkInst( std::uint16_t i, std::vector<std::string> &instructions);
     std::size_t checkIfThereIsSum( std::string &variable, std::stringstream &instructionLine );
     void showInstructions( const std::vector<std::uint16_t> &pos );
     std::uint8_t countOcurrences ( std::string &s, const char &character );

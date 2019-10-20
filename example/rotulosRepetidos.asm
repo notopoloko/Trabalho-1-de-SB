@@ -1,31 +1,34 @@
 SECTION TEXT
     INPUT V1
-    INPUT V1+1
+    INPUT V1
     INPUT V1+2
     INPUT V2
     INPUT V2+1
     INPUT V2+2
-    JMP SECONDPART
-    LOAD V1
-    add V2
-    store V2
     jmp SECONDPART
-FIRSTPART:
-    load V1+1
-    add V2+1
-    store V2+1
-    jmp final
+    LOAD V1
+    ADD V2
+    STORE V2
+    JMP SECONDPART
 SECONDPART:
-    load V1+2
-    add V2+2
-    store V2+2
+    LOAD V1+1
+    ADD V2+1
+    STORE V2+1
+    Jmp FINAL
+SECONDPART:                     ;Rótulo SECONDPART repetido
+    LOAD V1+2
+    ADD V2+2
+    STORE V2+2
     jmp FIRSTPART
-final:
-    output V2
-    output V2+1
-    output V2+2
-    stop
-SECTION data
+FINAL:
+    OUTPUT V2
+    OUTPUT V2+1
+    OUTPUT V2+2
+    COPY V2+2,V2+2
+    STOP
+
+
+SECTION DATA
     V1: SPACE 3
     V2: SPACE 3
-    FIRSTPART: CONST 1
+    SECONDPART: SPACE 3         ;Rótulo SECONDPART redeclarado como variavel

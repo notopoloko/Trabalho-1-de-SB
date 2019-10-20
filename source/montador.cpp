@@ -96,8 +96,11 @@ void Montador::mountCode (const std::string &code) {
                 currentPosition++;
             } else { // Achou uma label
                 token.pop_back(); // Remove ':'
-                // Checar se uma label já foi declara
-                if ( labels.find(token) != labels.end() ) {
+                // Checar se o rótulo está escrito corretamente
+                if ( !checkVar( token ) ) {
+                    std::cout << "Lexicon error: label is not spelled correctly in line: " + line << std::endl;
+                    codeIsFineToGo = false;
+                } else if ( labels.find(token) != labels.end() ) { // Checar se uma label já foi declarada
                     std::cout << "Semantic error: redefinition of label " + token + " in " + line << std::endl;
                     codeIsFineToGo = false;
                 }
@@ -120,7 +123,9 @@ void Montador::mountData (const std::string &data) {
     std::string token, token2, line;
     std::stringstream data_(data);
     std::size_t currentLine = endCode.size();
+    std::size_t holdNumOfSpaces = 0;
     std::size_t currentTokenLine = currentLine;
+    bool ehConst = false;
     std::map< std::string, std::vector<std::uint16_t> >::iterator itForDeps;
 
     while (std::getline(data_, line)) {
@@ -138,11 +143,13 @@ void Montador::mountData (const std::string &data) {
             if ( tempSS >> token2 ) { // Deve haver o numero de SPACEs
                 try {
                     std::size_t numOfSpaces = std::stoi(token2);
+                    holdNumOfSpaces = numOfSpaces;
                     while (numOfSpaces) {
                         endCode.push_back(0);
                         currentLine++;
                         numOfSpaces--;
                     }
+                    ehConst = false;
                 } catch(const std::exception& e) {
                     std::cerr << "Erro na conversao de SPACEs:\n" << e.what() << '\n';
                     continue;
@@ -150,13 +157,17 @@ void Montador::mountData (const std::string &data) {
 
             } else { // Do contrario so ha um SPACE
                 endCode.push_back(0);
+                holdNumOfSpaces = 1;
                 currentLine++;
+                ehConst = false;
             }
         } else if ( !token2.compare( "CONST" ) ) { // Pode ser CONST
             if ( tempSS >> token2 ) { // Deve haver uma declaracao de constante
                 try {
                     std::size_t val = std::stoi(token2);
                     endCode.push_back(val);
+                    holdNumOfSpaces = 1;
+                    ehConst = true;
                     currentLine++;
                 } catch (const std::exception& e) {
                     std::cerr << "Erro na conversao de " << token2 << " para um valor de constante:\n" << e.what() << '\n';
@@ -175,7 +186,7 @@ void Montador::mountData (const std::string &data) {
         // Resolver lista de pendencias com variaveis com ou sem soma
         itForDeps = deps.find(token);
         if ( itForDeps != deps.end() ) {
-            // Checar se ja nao foi declarado com variavel: vai estar marcada como resolvida
+            // Checar se ja nao foi declarado como variavel: vai estar marcada como resolvida
             if ( itForDeps->second[0] == 65535 ) {
                 std::cout << "Semantic error: redefinition of variable " + itForDeps->first + " in line " + line << std::endl;
                 codeIsFineToGo = false;
@@ -185,7 +196,31 @@ void Montador::mountData (const std::string &data) {
             const std::map<std::string, int>::iterator it = labels.find(token);
             if ( it == labels.end() ) {
                 for (auto &i : deps[token]) {
-                    endCode[i] = currentTokenLine + endCode[i];
+                    // Checar se nao esta saltando para seçao de dados
+                    std::vector<std::string> insts = { "JMP", "JMPZ", "JMPP", "JMPN" };
+                    if ( checkInst( i, insts ) ) {
+                        std::vector < std::uint16_t > temp = { i };
+                        std::cout << "jump to data section in line:\n " << std::endl;
+                        showInstructions(temp);
+                        codeIsFineToGo = false;
+                    } else if (ehConst) { // Garantir que nao ha alteracao de constante
+                        insts = {"INPUT", "STORE", "COPY"};
+                        if ( checkInst( i, insts ) ) {
+                            std::cout << "Semantic error: const value cannot be changed in line:" << std::endl;
+                            std::vector < std::uint16_t > temp = { i };
+                            showInstructions(temp);
+                            codeIsFineToGo = false;
+                        }
+                    }
+                    // Checar se está fazendo acesso correto
+                    if ( holdNumOfSpaces > endCode[i]) {
+                        endCode[i] = currentTokenLine + endCode[i];
+                    } else {
+                        std::cout << "Semantic error: access to address " + token + " + " << endCode[i] << " is illegal in line: " << std::endl;
+                        codeIsFineToGo = false;
+                        std::vector < std::uint16_t > temp = { i };
+                        showInstructions(temp);
+                    }
                 }
                 // Dependencias resolvidas
                 deps[token][0] = 65535;
@@ -376,4 +411,33 @@ std::uint8_t Montador::countOcurrences ( std::string &s, const char &character )
         }
     }
     return count;
+}
+
+/*
+Retorna verdadeiro se achar uma instrução do tipo jump, falso caso contrário
+*/
+bool Montador::checkInst( std::uint16_t i, std::vector<std::string> &instructions) {
+    std::map <std::uint16_t, std::string>::iterator it;
+    std::string temp;
+    // Achar linha provavel. Forma muito tosca de procurar uma instrucao :(
+    for (std::uint16_t j = i; j > i - 4; j--) {
+        if ( (it = instructionLines.find(j)) != instructionLines.end()) {
+            break;
+        }
+    }
+    if ( it != instructionLines.end() ) { // Procura na linha pela instrução de salto
+        std::stringstream tempSS (it->second);
+        tempSS >> temp;
+        if ( temp.size() > 0 && temp[temp.size() - 1] == ':' ) { // Pode ser uma label. Pegar próximo token
+            tempSS >> temp;
+        }
+        for (auto &i : instructions) {
+            if ( !temp.compare(i) ) {
+                return true;
+            }
+        }
+    } else {
+        return false;
+    }
+    return false;
 }
