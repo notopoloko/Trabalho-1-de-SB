@@ -59,6 +59,9 @@ const char * pre_processamento(char *nome_arq){
 
         char *token = strtok(linha, " \n\t");	// Separa cada token por espaco, nova linha e tab
         while(token){
+
+            ToUp(token);	// Torna os caracteres do token maiúsculos
+
             /*Tratamento de Comentários*/
             if(token[0] == ';')     // Retira comentários no formato: token ;comentario / ; comentario
                 break;
@@ -71,8 +74,6 @@ const char * pre_processamento(char *nome_arq){
 
 	        if(flag_espaco == 1)	// Responsável pelo espaço entre tokens no novo arquivo
 		        fprintf(pre_processado, " ");
-
-            ToUp(token);	// Torna os caracteres do token maiúsculos
 
             /*Tratamento de Hexadecimais*/
             if(token[0] == '0' && token[1] == 'X'){
@@ -120,7 +121,7 @@ const char * pre_processamento(char *nome_arq){
                 }
                 if(tem_dp == 0)     // Detecta erro se falta : na label do EQU
                     printf("Erro sintatico na linha %d\n", num_linha);
-                tem_dp = 1;    
+                tem_dp = 1;
                 for(int i = 0; i < 50; i++){
                     if(token[i] == '\0')
                         break;
@@ -132,6 +133,35 @@ const char * pre_processamento(char *nome_arq){
                 }
                 if(tem_dp == 0)     // Detecta erro se EQU eh uma string ao inves de numero
                     printf("Erro sintatico na linha %d\n", num_linha);
+            }
+
+            for(int i = 0; i < strlen(token); i++){     // Caso o simbolo do EQU esteja em um COPY
+                if(token[i] == ','){
+                    char *copy = strtok(token, ",");
+                    char auxiliar[50];
+                    strcpy(auxiliar,"undefined");
+                    int cont = 0, troca = 0;
+                    while(copy){
+                        for(int i = 0; i < equ_total; i++){
+                            if(cont == 0){
+                                strcpy(auxiliar,copy);
+                            }
+                            if(troca == 1){
+                                sprintf(token, "%s,%s", equ_trocado[i], copy);
+                            }
+                            if(!strcmp(copy, equ[i]) && cont == 0){
+                                troca = 1;
+                            } else if(!strcmp(copy, equ[i]) && cont == 1){
+                                troca = 2;
+                            }
+                            if(troca == 2){
+                                sprintf(token, "%s,%s", auxiliar, equ_trocado[i]);
+                            }
+                        }
+                        cont++;
+                        copy = strtok(NULL, ",");
+                    }
+                }
             }
 
             /*Tratamento de IF*/
