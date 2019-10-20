@@ -7,19 +7,19 @@
 #include <vector>
 
 /* Erros a serem detectados
-– declarações e rótulos ausentes;
-– declarações e rótulos repetidos;
+– declarações e rótulos ausentes; Ok
+– declarações e rótulos repetidos; Ok
 – pulo para rótulos inválidos;
 – pulo para seção errada;
 – diretivas inválidas;
 – instruções inválidas;
 – diretivas ou instruções na seção errada;
 – divisão por zero (para constante);
-– instruções com a quantidade de operando inválida;
+– instruções com a quantidade de operando inválida; Ok
 – instruções com o tipo de operando inválido;
 – tokens inválidos;
 – dois rótulos na mesma linha;
-– seção TEXT faltante;
+– seção TEXT faltante; OK
 – seção inválida;
 – tipo de argumento inválido;
 – modificação de um valor constante;
@@ -51,12 +51,15 @@ private:
     std::map <std::string, int> labels;
     std::map < std::string, std::vector<std::uint16_t> > deps;
     std::vector<std::uint16_t> endCode;
+    std::map <std::uint16_t, std::string> instructionLines;
 
     void mountCode(const std::string &code);
     void mountData(const std::string &data);
     void dealInstruction (std::stringstream &instructionLine, std::string instruction, std::size_t &currentPosition);
     bool checkVar(std::string &var);
     std::size_t checkIfThereIsSum( std::string &variable, std::stringstream &instructionLine );
+    void showInstructions( const std::vector<std::uint16_t> &pos );
+    std::uint8_t countOcurrences ( std::string &s, const char &character );
 public:
     Montador();
     ~Montador();
