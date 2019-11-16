@@ -7,15 +7,10 @@ oi2 db ", bem-vindo ao programa de CALC IA-32", 0dh, 0ah
 oi2_size EQU $-oi2
 menu db "ESCOLHA UMA OPÇÃO:", 0dh, 0ah, "- 1: SOMA", 0dh, 0ah, "- 2: SUBTRAÇÃO", 0dh, 0ah, "- 3: MULTIPLICAÇÃO", 0dh, 0ah, "- 4: DIVISÃO", 0dh, 0ah, "- 5: MOD", 0dh, 0ah, "- 6: SAIR", 0dh, 0ah, "->" 
 menu_size EQU $-menu
-s db "soma"
-m db "multi"
-su db "subtr"
-d db "divis"
-mo db "modulo"
 
 section .bss
 nome resb 20
-opcao resb 1
+opcao resb 2
 
 section .text
 global _start
