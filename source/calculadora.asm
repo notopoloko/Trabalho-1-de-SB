@@ -13,9 +13,83 @@ invalida_size EQU $-invalida
 section .bss
 nome resb 20
 opcao resb 2
+num1 resb 11
+num2 resb 11
+inteiro1 resd 1
+inteiro2 resd 1
+resultado resd 1
 
 section .text
 global _start
+
+recebe_int:                 ; Função que lê string e transforma em int
+        push ebp
+        mov ebp, esp
+        push eax
+        push ebx
+        push ecx
+        push edx
+        push esi            ; Empilha registradores que serão usados
+
+        mov eax, 3
+        mov ebx, 0
+        mov ecx, [ebp+12]
+        mov edx, [ebp+8]
+        int 80h             ; Lê a string que será o inteiro
+
+        mov esi, 0
+        mov eax, 0
+        mov ecx, 0
+        mov ebx, 0
+
+    repete_int:
+        mov edx, 10
+        mov ecx, [ebp+12]
+        mov ecx, [ecx+esi]  ; Acessa cada caracter da string
+        cmp ecx, 0ah        ; Compara se é new line
+        je fim
+        cmp cl, 2dh         ; Compara se é -
+        je negativo
+        sub ecx, 30h        ; Subtrai 0x30 do atual pra ficar decimal
+        mul edx             ; Multiplica por 10 o total
+        add eax, ecx        ; Soma o atual ao total
+    volta:
+        inc esi
+        cmp esi, 12         ; Compara se já chegou o limite dos 11 caracteres
+        je fim
+        jmp repete_int
+
+    negativo:               ; Marca o ebx se o número começar com -
+        mov ebx, 1
+        jmp volta
+
+    fim:
+        cmp ebx, 1          ; Se começar com - pula
+        je trata_neg
+        mov ebx, [ebp+16]
+        mov dword [ebx], eax
+
+        mov esi, 0
+
+    apaga1:                 ; Zera o buffer da entrada
+        mov ecx, [ebp+12]
+        mov byte [ecx+esi], 0
+        inc esi
+        cmp esi, 12
+        jne apaga1
+
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        pop eax
+        pop ebp
+        ret 12              ; Desempilha usados e retorna
+
+    trata_neg:              ; Obtem o negativo do número
+        neg eax
+        mov ebx, 0
+        jmp fim
 
 imprime_string:             ; Função que escreve strings
     push ebp
@@ -34,7 +108,7 @@ imprime_string:             ; Função que escreve strings
     pop ebx
     pop eax
     pop ebp
-    ret 12                  ; Desempilha parametros, eip e endereço e tamanho da string
+    ret 8                   ; Desempilha parametros, eip e endereço e tamanho da string
 
 recebe_string:              ; Função que lê strings
     push ebp
@@ -53,14 +127,14 @@ recebe_string:              ; Função que lê strings
     pop ebx
     pop eax
     pop ebp
-    ret 12                  ; Desempilha parametros, eip e endereço e tamanho da leitura
+    ret 8                   ; Desempilha parametros, eip e endereço e tamanho da leitura
 
 _start:
     push perg_nome          ; Imprime a pergunta do nome
     push perg_nome_size
     call imprime_string
 
-    push nome               ; Recebe inicio
+    push nome               ; Recebe o nome
     push 20
     call recebe_string
 
@@ -110,12 +184,35 @@ repete_menu:
     cmp al, 36h
     je sai
 
-    push invalida
+    push invalida           ; Imprime mensagem de opção invalida
     push invalida_size
     call imprime_string
     jmp repete_menu
 
 soma:
+    push inteiro1
+    push num1
+    push 11
+    call recebe_int         ; Chama função para o primeiro inteiro lido
+    push dword [inteiro1]   ; Empilha valor de inteiro1
+
+    push inteiro2
+    push num2
+    push 11
+    call recebe_int         ; Chama função para o segundo inteiro
+
+    pop edx                 ; Desempilha valor de inteiro1 em edx
+    mov eax, edx
+    add eax, [inteiro2]     ; Realiza as somas
+
+    mov dword [resultado], eax  ; Passa a soma para resultado
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, resultado
+    mov edx, 1
+    int 80h
+
     jmp repete_menu
 
 subt:
