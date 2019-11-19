@@ -5,7 +5,7 @@ oi db "Olá, ",0
 oi_size EQU $-oi
 oi2 db ", bem-vindo ao programa de CALC IA-32", 0dh, 0ah
 oi2_size EQU $-oi2
-menu db 0dh, 0ah, "ESCOLHA UMA OPÇÃO:", 0dh, 0ah, "- 1: SOMA", 0dh, 0ah, "- 2: SUBTRAÇÃO", 0dh, 0ah, "- 3: MULTIPLICAÇÃO", 0dh, 0ah, "- 4: DIVISÃO", 0dh, 0ah, "- 5: MOD", 0dh, 0ah, "- 6: SAIR", 0dh, 0ah, "->" 
+menu db 0dh, 0ah, "ESCOLHA UMA OPÇÃO:", 0dh, 0ah, "- 1: SOMA", 0dh, 0ah, "- 2: SUBTRAÇÃO", 0dh, 0ah, "- 3: MULTIPLICAÇÃO", 0dh, 0ah, "- 4: DIVISÃO", 0dh, 0ah, "- 5: MOD", 0dh, 0ah, "- 6: SAIR", 0dh, 0ah, "-> " 
 menu_size EQU $-menu
 invalida db "OPÇÃO INVÁLIDA", 0dh, 0ah
 invalida_size EQU $-invalida
@@ -170,26 +170,13 @@ repete_menu:
     push 2
     call recebe_string
 
+    mov eax, 0
     mov al, [opcao]         ; Pulamos para o operação escolhida
-    cmp al, 31h
-    je soma
-    cmp al, 32h
-    je subt
-    cmp al, 33h
-    je mult
-    cmp al, 34h
-    je divi
-    cmp al, 35h
-    je mod
     cmp al, 36h
     je sai
 
-    push invalida           ; Imprime mensagem de opção invalida
-    push invalida_size
-    call imprime_string
-    jmp repete_menu
+    push eax
 
-soma:
     push inteiro1
     push num1
     push 11
@@ -200,8 +187,27 @@ soma:
     push num2
     push 11
     call recebe_int         ; Chama função para o segundo inteiro
-
+    
     pop edx                 ; Desempilha valor de inteiro1 em edx
+
+    pop eax
+    cmp al, 31h
+    je soma
+    cmp al, 32h
+    je subt
+    cmp al, 33h
+    je mult
+    cmp al, 34h
+    je divi
+    cmp al, 35h
+    je mod
+
+    push invalida           ; Imprime mensagem de opção invalida
+    push invalida_size
+    call imprime_string
+    jmp repete_menu
+
+soma:
     mov eax, edx
     add eax, [inteiro2]     ; Realiza as somas
 
@@ -216,15 +222,62 @@ soma:
     jmp repete_menu
 
 subt:
+    mov eax, edx
+    sub eax, [inteiro2]     ; Realiza a subtração
+
+    mov dword [resultado], eax  ; Passa a subtração para resultado
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, resultado
+    mov edx, 1
+    int 80h
+
     jmp repete_menu
 
 mult:
+    mov eax, edx
+    imul dword [inteiro2]     ; Realiza a multiplicação
+
+    mov dword [resultado], eax  ; Passa a multiplicação para resultado
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, resultado
+    mov edx, 1
+    int 80h
+
     jmp repete_menu
 
 divi:
+    mov eax, edx
+    cdq
+    mov ebx, [inteiro2]
+    idiv ebx                ; Realiza a divisão
+
+    mov dword [resultado], eax  ; Passa a divisão para resultado
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, resultado
+    mov edx, 1
+    int 80h
+
     jmp repete_menu
 
 mod:
+    mov eax, edx
+    mov edx, 0
+    idiv dword [inteiro2]     ; Realiza as somas
+
+    mov dword [resultado], edx  ; Passa a soma para resultado
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, resultado
+    mov edx, 1
+    int 80h
+
     jmp repete_menu
 
 sai:
