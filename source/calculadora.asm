@@ -332,3 +332,7 @@ next:
 
     mov edx, esi
     int 80h
+
+    add esp, 11
+    pop ebp
+    ret
