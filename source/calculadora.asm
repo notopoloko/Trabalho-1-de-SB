@@ -284,3 +284,51 @@ sai:
     mov eax, 1              ; Retorna 0
     mov ebx, 0
     int 80h
+
+; Funçao para impressão. Recebe um inteiro de 32 
+; bits para impressao com passagem de parâmetro pela pilha
+; Registradores usados: eax, ebc, ecx, edx, esi (empilhe antes de chamar)
+print_int:
+    push ebp
+    mov ebp, esp
+    mov esi, 0
+    mov eax, 0
+    mov ecx, 0
+    ; Coloca os 16 bits menos significativos em ax
+    ; e os mais significativos em dx
+    mov eax, [ebp + 8]
+    mov ebx, 10
+
+    ; 4294967296 valor máximo de impressão (10 caracteres no maximo + '\0')
+    sub esp, 11
+    ; Coloca o '\n' no final da string
+    inc esi
+    mov ecx, ebp
+    sub ecx, esi
+    mov byte [ecx], 0ah
+next:
+    inc esi
+    mov edx, 0
+    ; mov edx, eax
+    ; shr edx, 16
+    div ebx
+
+    ; Coloca o valor na pilha
+    mov ecx, ebp
+    sub ecx, esi
+    add edx, '0'
+    mov byte [ecx], dl
+    cmp eax, 0
+    jne next
+
+    ; enter 0,0
+    ; Imprime o valor apontado por esp - <tamanho_da_string>
+    mov eax, 4
+    mov ebx, 1
+
+    mov ecx, ebp
+    sub ecx, esi
+    ; sub ecx, 1
+
+    mov edx, esi
+    int 80h

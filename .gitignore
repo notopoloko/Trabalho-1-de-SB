@@ -1,5 +1,6 @@
-pre_proc
-pre_proc_debug
+montador
+montador_debug
+simulador
 obj/*.o
 .vscode
 .idea

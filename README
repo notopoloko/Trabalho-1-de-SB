@@ -1,0 +1,28 @@
+Universidade de Brasilia - 02/2019
+Software Basico - Turma B
+Professor Bruno Macchiavello
+Trabalho Pratico 1 - Montador e Simulador
+
+Alunos: 
+        Rafael Amaral Soares        15/0145331
+        Pedro Vitor Valença Mizuno  17/0043665
+
+--- INSTRUÇÕES DE COMPILAÇÃO ---
+Para compilar este programa é necessário ter um compilador para C++11
+Neste projeto encontra-se um arquivo makefile para auxiliar no processo de compilação
+Não se esqueça que é necessário uma pasta chamada obj no diretório raiz para armazenar os arquivos objeto
+Para compilar o montador, basta digitar no diretório raiz:
+    make montador
+Para compilar o simulador, basta digitar no diretório raiz:
+    make simulador
+Os arquivos executáveis se chamarão montador e simulador
+Para executar basta digitar:
+    ./montador <arquivo.asm> ou
+    ./simulador <arquivo.obj>
+
+Dentro da pasta example há vários arquivos que foram usados para teste. Os erros que eles
+contém estão comentados dentro do código. Vale lembrar que os números que vem antes das linhas caso haja erros
+equivalem ao endereço da instrução e não à linha do arquivo, (e.g XX ADD B. XX é um endereço)
+
+SO utilizado: Ubuntu 7.4.0-1ubuntu1~18.04.1
+Compilador: gcc version 7.4.0

@@ -4,10 +4,10 @@ CXXFLAGS=-I $(SOURCE) -Wall -std=c++11
 
 ODIR=./obj
 
-all: $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o pre_proc
+all: $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o montador
 default: all
 debug_version: CXXFLAGS=-g -I $(SOURCE) -Wall
-debug_version: clean $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o pre_proc_debug;
+debug_version: clean $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o montador_debug;
 
 # C++ -> .hpp
 _DEPS = pre_proc.h montador.hpp
@@ -28,14 +28,17 @@ $(ODIR)/montador.o: $(SOURCE)/montador.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 # Gera executavel
-pre_proc: $(OBJ)
+montador: $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS)
 
 # Gere versao debug
-pre_proc_debug: $(OBJ)
+montador_debug: $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS)
+
+simulador:
+	$(CXX) -o $@ $(SOURCE)/simulador.c
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o pre_proc pre_proc_debug
+	rm -f $(ODIR)/*.o montador montador_debug simulador

@@ -27,3 +27,9 @@ SECTION TEXT
 SECTION DATA
     V1: SPACE 3
     V2: SPACE 3
+    V3: SPACE 3S            ;Erro léxico
+    V4: SPACE S3            ;Erro léxico
+    B1: CONST 3S            ;Erro léxico
+    B2: CONST S3            ;Erro léxico
+    1B: SPACE               ;Erro léxico
+    2B: CONST -0            ;Erro léxico

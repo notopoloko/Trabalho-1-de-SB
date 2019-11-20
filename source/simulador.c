@@ -127,8 +127,13 @@ void simulacao(const char *nome_arq){
     fclose(arq);
 }
 
-//int main(int argc, char** argv)
-//{
-//    simulacao(argv[1]);
-//    return 0;
-//}
+int main(int argc, char** argv)
+{
+    if (argc != 2) {
+        printf("Forma de uso: ./simulador <arquivo.obj>\n");
+        return 0;
+    }
+    
+    simulacao(argv[1]);
+    return 0;
+}

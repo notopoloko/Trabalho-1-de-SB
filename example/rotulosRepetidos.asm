@@ -10,8 +10,9 @@ SECTION TEXT
     ADD V2
     STORE V2
     JMP SECONDPART
-SECONDPART:
+FIRSTPART:
     LOAD V1+1
+SECONDPART:
     ADD V2+1
     STORE V2+1
     Jmp FINAL
@@ -25,10 +26,14 @@ FINAL:
     OUTPUT V2+1
     OUTPUT V2+2
     COPY V2+2,V2+2
+    LOAD DOIS
     STOP
 
 
 SECTION DATA
     V1: SPACE 3
     V2: SPACE 3
+    V2: SPACE 3                 ;Redefinição de space
     SECONDPART: SPACE 3         ;Rótulo SECONDPART redeclarado como variavel
+    DOIS: CONST 2
+    DOIS: CONST 3               ;Redefinição de constante

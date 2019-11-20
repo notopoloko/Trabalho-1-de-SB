@@ -2,29 +2,29 @@ SECTION TEXT
     INPUT V1
     INPUT V1
     INPUT V1+2
-    INPUT V2
-    INPUT V2+1
-    INPUT V2+2
+    INPUT V2                ;V2 nao declarado
+    INPUT V2+1              ;V2 nao declarado
+    INPUT V2+2              ;V2 nao declarado
     jmp SECONDPART
     LOAD V1
-    ADD V2
-    STORE V2
+    ADD V2                  ;V2 nao declarado
+    STORE V2                ;V2 nao declarado
     JMP SECONDPART
 ANYPART:
     LOAD V1+1
-    ADD V2+1
-    STORE V2+1
+    ADD V2+1                ;V2 nao declarado
+    STORE V2+1              ;V2 nao declarado
     Jmp FINAL
 SECONDPART:
     LOAD V1+2
-    ADD V2+2
-    STORE V2+2
-    jmp FIRSTPART
+    ADD V2+2                ;V2 nao declarado
+    STORE V2+2              ;V2 nao declarado
+    jmp FIRSTPART           ;Rótulos ausentes
 FINAL:
-    OUTPUT V2
-    OUTPUT V2+1
-    OUTPUT V2+2
-    COPY V2+2,V2+2
+    OUTPUT V2               ;V2 nao declarado
+    OUTPUT V2+1             ;V2 nao declarado
+    OUTPUT V2+2             ;V2 nao declarado
+    COPY V2+2,V2+2          ;V2 nao declarado
     STOP
 
 

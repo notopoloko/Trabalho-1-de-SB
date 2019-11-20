@@ -11,8 +11,8 @@ LABELMAROTA:
 LABELMAROTA1:
         JMPP        B           ;Salto para a seção de dados
 1LABELMAROTA:
-        JMPN        B           ;Salto para a seção de dados
-        JMPZ        B           ;Salto para a seção de dados
+        JMPN        R           ;Salto para a seção de dados
+        JMPZ        R           ;Salto para a seção de dados
 		STORE		R
 		OUTPUT  	R
 		STOP

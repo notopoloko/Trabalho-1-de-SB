@@ -14,14 +14,14 @@
 – diretivas inválidas; ~
 – instruções inválidas; ~
 – diretivas ou instruções na seção errada;
-– divisão por zero (para constante);
+– divisão por zero (para constante); Ok
 – instruções com a quantidade de operando inválida; Ok
-– instruções com o tipo de operando inválido;
+– instruções com o tipo de operando inválido; ~
 – tokens inválidos;
-– dois rótulos na mesma linha;
+– dois rótulos na mesma linha; OK
 – seção TEXT faltante; OK
 – seção inválida;
-– tipo de argumento inválido;
+– tipo de argumento inválido; ~
 – modificação de um valor constante; Ok
 – acessar posição não reservada pelo SPACE (exemplo accesar SPACE+4,
 sendo que somente foi reservada uma posição) Ok
@@ -32,6 +32,7 @@ class Montador
 private:
     const std::string fileName;
     bool codeIsFineToGo = true;
+    bool isSecondArg = false; // Para uso esclusivo NAO modifique esse argumento
     std::map <std::string, std::uint16_t> codes = {
         {"ADD", 1},
         {"SUB", 2},
@@ -50,7 +51,7 @@ private:
     };
     std::map <std::string, int> labels;
     std::map < std::string, std::vector<std::uint16_t> > deps;
-    std::vector<std::uint16_t> endCode;
+    std::vector<std::int16_t> endCode;
     std::map <std::uint16_t, std::string> instructionLines;
 
     void mountCode(const std::string &code);

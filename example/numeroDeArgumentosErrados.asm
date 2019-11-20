@@ -7,7 +7,7 @@ SECTION TEXT
 		IF TRIANGULO
 		DIV		    DOIS
 		STORE		R
-		OUTPUT	    R
+		OUTPUT	    R,H
         copy        B,H,C		;Instrução COPY com argumentos errados
         copy        b,h,		;Instrução COPY com argumentos errados
 		STOP		

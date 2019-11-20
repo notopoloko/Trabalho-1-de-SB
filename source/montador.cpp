@@ -11,6 +11,8 @@ Montador::~Montador()
 std::string Montador::mount ( std::string fileName) {
     std::ifstream arq;
 
+    std::cout << "\tFase de montagem:\n" << std::endl;
+
     arq.open(fileName);
     if ( !arq.is_open() ) {
         std::cerr << "Unable to open file to mount" << std::endl;
@@ -39,9 +41,9 @@ std::string Montador::mount ( std::string fileName) {
         // Tratamento da falta da parte de dados aqui
         if (dataBegin == std::string::npos) {
             std::cerr << "Sem parte de dados" << std::endl;
-        }
-        // std::string("SECTION TEXT").size() == std::string("SECTION TEXT").size() == 13
-        if (textBegin > dataBegin) { // Parte de codigo vem depois da parte de dados
+            code = content.substr(textBegin + 13);
+        } else if (textBegin > dataBegin) { // Parte de codigo vem depois da parte de dados
+            // std::string("SECTION TEXT").size() == std::string("SECTION TEXT").size() == 13
             code = content.substr(textBegin + 13);
             data = content.substr(dataBegin + 13, textBegin - dataBegin - 13);
         } else { // Parte de codigo vem antes da parte de dados
@@ -58,7 +60,7 @@ std::string Montador::mount ( std::string fileName) {
         fileName.replace( fileName.find_last_of('.'), std::string::npos, ".obj" );
         std::ofstream outputFile(fileName);
         if (outputFile.is_open()) {
-            std::ostream_iterator<std::uint16_t> output_iterator(outputFile, " ");
+            std::ostream_iterator<std::int16_t> output_iterator(outputFile, " ");
             std::copy(endCode.begin(), endCode.end(), output_iterator);
         } else {
             std::cerr << "Unable to open file to dump" << std::endl;
@@ -72,7 +74,7 @@ std::string Montador::mount ( std::string fileName) {
 void Montador::mountCode (const std::string &code) {
     std::string token, line;
     std::stringstream code_(code);
-    std::size_t currentPosition = 0;
+    std::size_t currentPosition = 0, doublePoints = 0;
 
     while (std::getline(code_, line)) {
         // Pular linhas vazias
@@ -91,10 +93,15 @@ void Montador::mountCode (const std::string &code) {
             currentPosition++;
             Montador::dealInstruction(temp, token, currentPosition);
         } else { // Pode ser uma label
-            if (token.find(':') == std::string::npos ) { // não identificado
-                std::cout << token << " in line " << currentPosition << " " + line << " is not a valid instruction."<< std::endl;
-                currentPosition++;
-            } else { // Achou uma label
+            doublePoints = token.find(':');
+            if ( doublePoints == std::string::npos ) { // não identificado
+                if ( !checkVar(token) ) {
+                    std::cout << "Lexicon error: " + token + " is not spelled correctly in line " + line << std::endl;
+                } else {
+                    std::cout << "Sintax error:" + token << " in line " << currentPosition << " " + line << " is not a valid instruction." << std::endl;
+                    codeIsFineToGo = false;
+                }
+            } else if ( doublePoints == token.size() - 1 ) { // Achou uma label
                 token.pop_back(); // Remove ':'
                 // Checar se o rótulo está escrito corretamente
                 if ( !checkVar( token ) ) {
@@ -107,12 +114,21 @@ void Montador::mountCode (const std::string &code) {
                 
                 labels[token] = currentPosition;
                 temp >> token;
+                if ( token.size() > 0 && token[ token.size()-1 ] == ':' ) { // Achou outra label
+                    std::cout << "Sintax error: labels with same address in line: " + line << std::endl;
+                    codeIsFineToGo = false;
+                    continue;
+                }
                 if ( codes.find(token) != codes.end() ) {
                     endCode.push_back(codes[token]);
                     currentPosition++;
                     Montador::dealInstruction(temp, token, currentPosition);
                 } else {
-                    std::cout << "Something is wrong: " << token << " is not recognized as instruction after a label." << std::endl;
+                    if ( !checkVar(token) ) {
+                        std::cout << "Lexicon error: " + token + " is not spelled correctly in line " + line << std::endl;
+                    } else {
+                        std::cout << "Sintax error: " << token << " is not recognized as instruction after a label." << std::endl;
+                    }
                 }
             }
         }
@@ -124,6 +140,7 @@ void Montador::mountData (const std::string &data) {
     std::stringstream data_(data);
     std::size_t currentLine = endCode.size();
     std::size_t holdNumOfSpaces = 0;
+    int val = 0;
     std::size_t currentTokenLine = currentLine;
     bool ehConst = false;
     std::map< std::string, std::vector<std::uint16_t> >::iterator itForDeps;
@@ -134,13 +151,32 @@ void Montador::mountData (const std::string &data) {
         }
         
         std::stringstream tempSS(line);
-        // Por enquanto assumindo que nao ha erros e que sempre comeca com label
-        tempSS >> token;
-        token.erase( token.find_last_of(':') );
-
+        // Checar se começa com label
+        if ( tempSS >> token ) {
+            if (token.size() > 0 && token[token.size() - 1] == ':') {
+                token.erase( token.find_last_of(':') );
+            } else { // Não começa com declaração de variável
+                std::cout << "Sintax error: "+ line + " is not recognized as a valid variable declaration." << std::endl;
+                codeIsFineToGo = false;
+                continue;
+            }
+            if ( !checkVar( token ) ) {
+                std::cout << "Lexic error: " + token + " is not spelled correctly in line: " + line << std::endl;
+                codeIsFineToGo = false;
+                continue;
+            }
+            
+        }
         tempSS >> token2;
         if ( !token2.compare("SPACE") ) { // Pode ser SPACE
             if ( tempSS >> token2 ) { // Deve haver o numero de SPACEs
+                for (auto &i : token2) { // Verificar se pode haver conversao errada
+                    if ( !std::isdigit( i ) ) {
+                        std::cout << "Sintax error: " + token2 + " is expected to be a number in line: " + line << std::endl;
+                        codeIsFineToGo = false;
+                        break;
+                    }
+                }
                 try {
                     std::size_t numOfSpaces = std::stoi(token2);
                     holdNumOfSpaces = numOfSpaces;
@@ -151,7 +187,7 @@ void Montador::mountData (const std::string &data) {
                     }
                     ehConst = false;
                 } catch(const std::exception& e) {
-                    std::cerr << "Erro na conversao de SPACEs:\n" << e.what() << '\n';
+                    // std::cerr << "Erro na conversao de SPACEs in line:" + line + "\n" << e.what() << '\n';
                     continue;
                 }
 
@@ -162,25 +198,38 @@ void Montador::mountData (const std::string &data) {
                 ehConst = false;
             }
         } else if ( !token2.compare( "CONST" ) ) { // Pode ser CONST
+            std::string minusSign;
             if ( tempSS >> token2 ) { // Deve haver uma declaracao de constante
+                if ( token2.size() > 0 && token2[0] == '-' ) { // eh um numero negativo
+                    minusSign = token2[0];
+                    token2 = token2.substr(1); // retira o sinal negativo
+                }
+                for (auto &i : token2) { // Verificar se pode haver conversao errada
+                    if ( !std::isdigit( i ) ) {
+                        std::cout << "Sintax error: " + token2 + " is expected to be a number in line: " + line << std::endl;
+                        codeIsFineToGo = false;
+                        break;
+                    }
+                }
+                token2 = minusSign + token2; // recebe o sinal novamente
                 try {
-                    std::size_t val = std::stoi(token2);
+                    val = std::stoi(token2);
                     endCode.push_back(val);
                     holdNumOfSpaces = 1;
                     ehConst = true;
                     currentLine++;
                 } catch (const std::exception& e) {
-                    std::cerr << "Erro na conversao de " << token2 << " para um valor de constante:\n" << e.what() << '\n';
+                    // std::cerr << "Lexicon error: erro na conversao de " << token2 << " para um valor de constante:\n" << e.what() << '\n';
                     codeIsFineToGo = false;
                     continue;
                 }
             } else {
-                std::cout << "Sintax erros: CONST sem numero" << std::endl;
+                std::cout << "Sintax error: CONST not initialized in line " << currentTokenLine << " " << line << std::endl;
                 codeIsFineToGo = false;
                 continue;
             }
         } else {
-            std::cout << "Objeto Voador Nao Identificado: " << token2 << std::endl;
+            std::cout << "Sintax error: " + token2 + " is not recognized as valid token in line: " + line << std::endl;
             continue;
         }
         // Resolver lista de pendencias com variaveis com ou sem soma
@@ -204,16 +253,32 @@ void Montador::mountData (const std::string &data) {
                         showInstructions(temp);
                         codeIsFineToGo = false;
                     } else if (ehConst) { // Garantir que nao ha alteracao de constante
-                        insts = {"INPUT", "STORE", "COPY"};
-                        if ( checkInst( i, insts ) ) {
+                        insts = {"COPY"};
+                        if ( checkInst( i, insts ) && isSecondArg) { // Não pode alterar apenas o segundo argumento de Copy
                             std::cout << "Semantic error: const value cannot be changed in line:" << std::endl;
                             std::vector < std::uint16_t > temp = { i };
                             showInstructions(temp);
                             codeIsFineToGo = false;
+                            isSecondArg = false;
+                            continue;
+                        }
+                        insts = {"INPUT", "STORE" };
+                        if ( checkInst( i, insts ) ) { // Não pode alterar const
+                            std::cout << "Semantic error: const value cannot be changed in line:" << std::endl;
+                            std::vector < std::uint16_t > temp = { i };
+                            showInstructions(temp);
+                            codeIsFineToGo = false;
+                            continue;
+                        } else if ( val == 0 && checkInst(i, insts = { "DIV" } )  ) { // Garantir que nao ha divisao por 0
+                            std::cout << "Semantic error:" + token + " have value " << val <<  ". Division by zero in line" << std::endl;
+                            std::vector < std::uint16_t > temp = { i };
+                            showInstructions(temp);
+                            codeIsFineToGo = false;
+                            continue;
                         }
                     }
                     // Checar se está fazendo acesso correto
-                    if ( holdNumOfSpaces > endCode[i]) {
+                    if ( holdNumOfSpaces > static_cast<size_t> (endCode[i])) {
                         endCode[i] = currentTokenLine + endCode[i];
                     } else {
                         std::cout << "Semantic error: access to address " + token + " + " << endCode[i] << " is illegal in line: " << std::endl;
@@ -225,7 +290,7 @@ void Montador::mountData (const std::string &data) {
                 // Dependencias resolvidas
                 deps[token][0] = 65535;
             } else {
-                std::cout << it->first << " declared as a variable but it was already declared as label in:\n" << std::endl;
+                std::cout << "Semantic error: " << it->first << " declared as a variable but it was already declared as label in:\n" << std::endl;
                 codeIsFineToGo = false;
                 std::vector<std::uint16_t> vec = { static_cast<std::uint16_t> (it->second) };
                 showInstructions( vec );
@@ -240,8 +305,16 @@ void Montador::mountData (const std::string &data) {
     for (const auto& kv: labels) {
         // Label foi usada em algum lugar e precisa ser resolvida
         if ( deps.find(kv.first) != deps.end() ) {
+            std::vector<std::string> insts = { "JMP", "JMPZ", "JMPP", "JMPN" };
             for (auto &i : deps[kv.first]) {
-                endCode[i] = kv.second;
+                if ( checkInst( i, insts ) ) { // Checa se a label esta sendo usada na instrucao correta
+                    endCode[i] = kv.second;
+                } else {
+                    std::vector < std::uint16_t > temp = { i };
+                    std::cout << "Semantic error: invalid arguments in line:\n " << std::endl;
+                    showInstructions(temp);
+                    codeIsFineToGo = false;
+                }
             }
             // Marca que a pendencia foi resolvida
             deps[kv.first][0] = 65535;
@@ -279,7 +352,7 @@ std::size_t Montador::checkIfThereIsSum( std::string &variable, std::stringstrea
         try { // Tentar tranformar para inteiro
             val = std::stoi(varTemp1, nullptr, 10);
         } catch(const std::exception& e) {
-            std::cerr << "Sintatic error in transform "<< instructionLine.str() << " to a valid instruction. Index " << varTemp1 << 
+            std::cerr << "Sintax error in transform "<< instructionLine.str() << " to a valid instruction. Index " << varTemp1 << 
             "could not be converted to integer\n" << e.what() << '\n';
             codeIsFineToGo = false;
             return 0;
@@ -310,16 +383,25 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
         std::stringstream temp(instruction);
         std::getline(temp, var1, ',');
         std::getline(temp, var2);
+        // Garantir que o argumento não seja um mnemonico
+        for (const auto &i : codes) {
+            if ( !var1.compare(i.first) || !var2.compare(i.first) ) {
+                std::cout << "Semantic error: Argument cannot be a mnemonic in line " + instructionLine.str() << std::endl;
+                codeIsFineToGo = false;
+                return;
+            }
+        }
+        
         // Tratar o caso de soma: COPY N1+3,N2+4
         val = Montador::checkIfThereIsSum(var1, instructionLine);
         val1 = Montador::checkIfThereIsSum(var2, instructionLine);
         if ( !Montador::checkVar(var1) ) { // Variável com síbolo errado. Apaga instrução e retorna
-            std::cout << "Lexicon error: " << var1 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            std::cout << "Lexicon error: " << var1 << " is not spelled correctly in " << instructionLine.str() << std::endl;
             codeIsFineToGo = false;
             return;
         }
         if ( !Montador::checkVar(var2)) {
-            std::cout << "Lexicon error: " << var2 << " is not spelled correctly in " << instructionLine.str() << ". Fix this." << std::endl;
+            std::cout << "Lexicon error: " << var2 << " is not spelled correctly in " << instructionLine.str() << std::endl;
             codeIsFineToGo = false;
             return;
         }
@@ -349,6 +431,14 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
             std::cout << "Semantic error: " + holdInstruction + " instruction is expecting 1 arg in line " + instructionLine.str() << std::endl;
             codeIsFineToGo = false;
             return;
+        }
+        // Garantir que o argumento não seja um mnemonico
+        for (const auto &i : codes) {
+            if ( !instruction.compare(i.first) ) {
+                std::cout << "Semantic error: argument cannot be a mnemonic in line " + instructionLine.str() << std::endl;
+                codeIsFineToGo = false;
+                return;
+            }
         }
         // Checar se se está referenciando uma posição de um vetor;
         val = Montador::checkIfThereIsSum(instruction, instructionLine);
@@ -414,13 +504,14 @@ std::uint8_t Montador::countOcurrences ( std::string &s, const char &character )
 }
 
 /*
-Retorna verdadeiro se achar uma instrução do tipo jump, falso caso contrário
+Retorna verdadeiro se achar uma instrução do tipo [instructions], falso caso contrário
 */
 bool Montador::checkInst( std::uint16_t i, std::vector<std::string> &instructions) {
     std::map <std::uint16_t, std::string>::iterator it;
     std::string temp;
+    std::uint16_t j;
     // Achar linha provavel. Forma muito tosca de procurar uma instrucao :(
-    for (std::uint16_t j = i; j > i - 4; j--) {
+    for (j = i; j > i - 4; j--) {
         if ( (it = instructionLines.find(j)) != instructionLines.end()) {
             break;
         }
@@ -430,9 +521,13 @@ bool Montador::checkInst( std::uint16_t i, std::vector<std::string> &instruction
         tempSS >> temp;
         if ( temp.size() > 0 && temp[temp.size() - 1] == ':' ) { // Pode ser uma label. Pegar próximo token
             tempSS >> temp;
+            j++;
         }
-        for (auto &i : instructions) {
-            if ( !temp.compare(i) ) {
+        for (auto &inst : instructions) {
+            if ( !temp.compare(inst) ) {
+                if ( !inst.compare("COPY") && j == i - 2 ) {
+                    isSecondArg = true;
+                }
                 return true;
             }
         }

@@ -19,7 +19,7 @@ const char * pre_processamento(char *nome_arq){
         exit(1);
     }
 
-    printf("Pre-processamento:\n");
+    printf("\tPre-processamento:\n");
 
     /*Retira a extensão atual e coloca a nova .pre*/
     static char aux[50];
@@ -135,10 +135,10 @@ const char * pre_processamento(char *nome_arq){
                     printf("Erro sintatico na linha %d\n", num_linha);
             }
 
-            for(int i = 0; i < strlen(token); i++){     // Caso o simbolo do EQU esteja em um COPY
+            for(size_t i = 0; i < strlen(token); i++){     // Caso o simbolo do EQU esteja em um COPY
                 if(token[i] == ','){
                     int num_virgula = 0;
-                    for(int i = 0; i < strlen(token); i++){
+                    for(size_t i = 0; i < strlen(token); i++){
                         if(token[i] == ',')
                             num_virgula++;
                     }
@@ -176,7 +176,7 @@ const char * pre_processamento(char *nome_arq){
                     f = 1;
                     break;
                 }
-                for(int i = 0; i < strlen(token); i++){
+                for(size_t i = 0; i < strlen(token); i++){
                     if(token[i] == ':' && num_token == 0){
                         flag_if = 2;
                     }
