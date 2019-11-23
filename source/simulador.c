@@ -5,8 +5,6 @@
 
 void num_enderecos(FILE *arq, int tamanho_arq, int *enderecos){
     char linha[tamanho_arq];
-    // Por algum motivo que não sei, tem uns números que são partidos quando aloca memória
-    //char *linha = (char *) malloc (tamanho_arq * sizeof(char));
     int contador = 0;
     while(fgets(linha, sizeof(linha), arq)){
         char *num = strtok(linha, " ");
@@ -16,7 +14,6 @@ void num_enderecos(FILE *arq, int tamanho_arq, int *enderecos){
             contador++;
         }
     }
-    //free(linha);
 }
 
 void simulacao(const char *nome_arq){
@@ -130,7 +127,7 @@ void simulacao(const char *nome_arq){
 int main(int argc, char** argv)
 {
     if (argc != 2) {
-        printf("Forma de uso: ./simulador <arquivo.obj>\n");
+        printf("Forma de uso: ./simulador <arquivo>\n");
         return 0;
     }
     
