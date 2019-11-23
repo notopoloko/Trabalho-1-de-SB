@@ -3,16 +3,24 @@
 #include <string.h>
 #define NULO -11037
 
+// Função responsável por ligar o código. Recebe o(s) nomes do(s) arquivo(s)
 void ligador(char *nome_arq1, char *nome_arq2){
     FILE *arq1;
-    arq1 = fopen(nome_arq1, "r");
+    arq1 = fopen(nome_arq1, "r");   // Abre arquivo com o primeiro nome
 
     if(arq1 == NULL){
         printf("Erro ao abrir o arquivo!\n");
         exit(1);
     }
 
-    FILE *saida = fopen("ligado.obj", "w");
+    char aux[50];
+    for(int i = 0; i < sizeof(nome_arq1); i++){
+        if(nome_arq1[i] == '.')
+            nome_arq1[i] = '\0';    // Retira a extensão do nome do primeiro arquivo
+    }
+    strcat(aux, nome_arq1);
+
+    FILE *saida = fopen(aux, "w");  // Cria um arquivo o nome do primeiro arquivo sem extensão
     if(saida == NULL){
         printf("Erro ao abrir o arquivo de saida!\n");
         exit(1);
@@ -26,7 +34,7 @@ void ligador(char *nome_arq1, char *nome_arq2){
         int codigo1[300], codigo2[300], cont = 0, cont_h = 0, cont_u = 0, cont_d = 0, fator_correcao;        
         char *tu1[30], *tu2[30], *td1[30], *td2[30], map_bits[150];
 
-        for (int k = 0; k < 30; k++) {
+        for (int k = 0; k < 30; k++) {  // Preenche com undefined
             tu1[k] = (char*)malloc(50*sizeof(char));
             strcpy(tu1[k], "undefined");
             tu2[k] = (char*)malloc(50*sizeof(char));
@@ -36,20 +44,20 @@ void ligador(char *nome_arq1, char *nome_arq2){
             td2[k] = (char*)malloc(50*sizeof(char));
             strcpy(td2[k], "undefined");
         }
-        for(int i = 0; i < 300; i++){
+        for(int i = 0; i < 300; i++){   // Preenche com NULO
             codigo1[i] = NULO;
             codigo2[i] = NULO;
         }
         
         FILE *arq2;
-        arq2 = fopen(nome_arq2, "r");
+        arq2 = fopen(nome_arq2, "r");   // Abre o segundo arquivo
 
         if(arq2 == NULL){
             printf("Erro ao abrir o arquivo!\n");
             exit(1);
         }
 
-        while(fgets(linha, sizeof(linha), arq1)){
+        while(fgets(linha, sizeof(linha), arq1)){   // Enquanto ainda tiverem linhas a se ler
             char *token = strtok(linha, " \n\t");
             while(token){
 
@@ -72,10 +80,10 @@ void ligador(char *nome_arq1, char *nome_arq2){
                     cont_d++;
                 }
 
-                if(!strcmp(token, "H:"))
+                if(!strcmp(token, "H:"))    // Conta o número de H:
                     cont_h++;
 
-                if(!strcmp(token, "T:")){
+                if(!strcmp(token, "T:")){   // Marca se tem T:
                     flag_t = 1;
                     cont_h++;
                 }
