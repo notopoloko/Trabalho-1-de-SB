@@ -9,6 +9,7 @@ int main(int argc, char** argv){
     
     Montador montador;
     montador.mount( pre_processamento(argv[1]) );
+    // montador.mount( argv[1] );
 
     return 0;
 }

@@ -49,10 +49,15 @@ private:
         {"OUTPUT", 13},
         {"STOP", 14}
     };
-    std::map <std::string, int> labels;
-    std::map < std::string, std::vector<std::uint16_t> > deps;
-    std::vector<std::int16_t> endCode;
-    std::map <std::uint16_t, std::string> instructionLines;
+    std::map < std::string, int > labels;
+    std::map < std::string, std::vector< std::uint16_t > > deps;
+    std::vector < std::int16_t > endCode;
+    std::map < std::uint16_t, std::string> instructionLines;
+    std::map < std::string, std::vector< int > > useTable;
+    std::map < std::string, std::vector< int > > defTable;
+    std::vector < uint8_t > relocable;
+    std::string programName;
+    std::string mountedCode;
 
     void mountCode(const std::string &code);
     void mountData(const std::string &data);

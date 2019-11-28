@@ -26,7 +26,37 @@ std::string Montador::mount ( std::string fileName) {
     buffer << arq.rdbuf();
     arq.close();
 
-    std::string content = buffer.str();
+    std::string content, token, token2;
+    // Procura pela parte de útil para montagem
+    // MODULE_NAME: BEGIN | MODULE_NAME:BEGIN
+    // ...
+    // END
+    std::size_t jmpChars = 0;
+    while ( std::getline( buffer, content ) ) {
+        // Verifica se há dois pontos definindo o modulo
+        std::size_t doublePoints = content.find(':');
+        jmpChars += content.size();
+        if ( doublePoints != std::string::npos ) {
+            token = content.substr( 0, doublePoints );
+            token2 = content.substr( doublePoints + 1 ); // Pula o ':'
+            // Arrumar outros casos
+            if ( token2.find("BEGIN") != std::string::npos ) {
+                buffer.seekg(0);
+                content = buffer.str();
+                // Sem delimitação final de módulo
+                std::size_t endModule = content.find("END");
+                if ( endModule == std::string::npos ) {
+                    std::cout << "There's no END delimiter of module." << std::endl;
+                    exit( 0 );
+                }
+                content = content.substr(jmpChars, endModule - jmpChars);
+                this->programName = token;
+                // std::cout << "programName: " + token + "\nprogramContent: " + content << std::endl;
+            }
+            break;
+        }
+    }
+
     // Procurar pela parte de codigo e de dados
     std::size_t textBegin = content.find("SECTION TEXT");
     std::size_t dataBegin = content.find("SECTION DATA");
@@ -35,12 +65,12 @@ std::string Montador::mount ( std::string fileName) {
 
     // Tratamento da falta de parte de codigo aqui
     if (textBegin == std::string::npos) {
-        std::cerr << "Sem parte de codigo" << std::endl;
+        std::cerr << "Sem parte de codigo." << std::endl;
         exit(1);
     } else {
         // Tratamento da falta da parte de dados aqui
         if (dataBegin == std::string::npos) {
-            std::cerr << "Sem parte de dados" << std::endl;
+            std::cerr << "Sem parte de dados." << std::endl;
             code = content.substr(textBegin + 13);
         } else if (textBegin > dataBegin) { // Parte de codigo vem depois da parte de dados
             // std::string("SECTION TEXT").size() == std::string("SECTION TEXT").size() == 13
@@ -55,13 +85,43 @@ std::string Montador::mount ( std::string fileName) {
     Montador::mountCode(code);
     Montador::mountData(data);
 
+    std::ostringstream oss, ossCode;
+
     // Dump file
     if (codeIsFineToGo) {
+        // Pre aloca uma quantidade razoavel para evitar operação de alocação
+        mountedCode.reserve( 512 );
         fileName.replace( fileName.find_last_of('.'), std::string::npos, ".obj" );
         std::ofstream outputFile(fileName);
         if (outputFile.is_open()) {
-            std::ostream_iterator<std::int16_t> output_iterator(outputFile, " ");
-            std::copy(endCode.begin(), endCode.end(), output_iterator);
+            // Coloca o nome do programa
+            mountedCode = "H: " + programName + "\nH: ";
+            // Coloca o tamanho do programa
+            mountedCode += std::to_string( endCode.size() ) + "\nH: ";
+            // Coloca informação de relocação
+            // Transforma vetor de int para string
+            std::copy(relocable.begin(), relocable.end(), std::ostream_iterator<int>(oss, ""));
+            mountedCode += oss.str() + "\nH: ";
+            // Insere tabela de uso
+            for ( auto &i : useTable ) {
+                for ( auto &j : i.second ) {
+                    mountedCode += i.first + ' ' + std::to_string( j ) + ' ';
+                }
+            }
+            mountedCode += "\nH: ";
+            // Insere tabela de definições
+            for ( auto &i : defTable ) {
+                for ( auto &j : i.second ) {
+                    mountedCode += i.first + ' ' + std::to_string( j ) + ' ';
+                }
+            }
+            mountedCode += "\nT: ";
+            // Escreve o codigo
+            std::copy(endCode.begin(), endCode.end(), std::ostream_iterator<std::int16_t>( ossCode, " "));
+            // Joga no arquivo
+            mountedCode += ossCode.str();
+            outputFile << mountedCode;
+            outputFile.close();
         } else {
             std::cerr << "Unable to open file to dump" << std::endl;
             return "";
@@ -91,7 +151,12 @@ void Montador::mountCode (const std::string &code) {
         if (ehOpCode) {
             endCode.push_back(codes[token]);
             currentPosition++;
+            relocable.push_back( 0 );
             Montador::dealInstruction(temp, token, currentPosition);
+        } else if ( !token.compare ("PUBLIC") ) {
+            // Pode ser um símbolo público
+            temp >> token;
+            this->defTable[token].push_back( 0 );
         } else { // Pode ser uma label
             doublePoints = token.find(':');
             if ( doublePoints == std::string::npos ) { // não identificado
@@ -113,6 +178,7 @@ void Montador::mountCode (const std::string &code) {
                 }
                 
                 labels[token] = currentPosition;
+                std::string possibleExtern = token;
                 temp >> token;
                 if ( token.size() > 0 && token[ token.size()-1 ] == ':' ) { // Achou outra label
                     std::cout << "Sintax error: labels with same address in line: " + line << std::endl;
@@ -120,9 +186,14 @@ void Montador::mountCode (const std::string &code) {
                     continue;
                 }
                 if ( codes.find(token) != codes.end() ) {
+                    // É um mnemonico
                     endCode.push_back(codes[token]);
                     currentPosition++;
                     Montador::dealInstruction(temp, token, currentPosition);
+                } else if ( !token.compare("EXTERN") ) {
+                    // É uma label definida em outro modulo
+                    this->useTable[ possibleExtern ];
+                    continue;
                 } else {
                     if ( !checkVar(token) ) {
                         std::cout << "Lexicon error: " + token + " is not spelled correctly in line " + line << std::endl;
@@ -144,6 +215,7 @@ void Montador::mountData (const std::string &data) {
     std::size_t currentTokenLine = currentLine;
     bool ehConst = false;
     std::map< std::string, std::vector<std::uint16_t> >::iterator itForDeps;
+    std::map< std::string, std::vector<int> >::iterator itForDef;
 
     while (std::getline(data_, line)) {
         if (line.size() == 0) { // Nada para fazer, eh so um \n
@@ -169,6 +241,12 @@ void Montador::mountData (const std::string &data) {
         }
         tempSS >> token2;
         if ( !token2.compare("SPACE") ) { // Pode ser SPACE
+            // Procurar por símbolos publicos
+            if ( (itForDef = defTable.find( token ) ) != defTable.end() ) {
+                // Deve definir um símbolo na tabela de definições
+                itForDef->second[0] = endCode.size();
+                // std::cout << "Simbolo publico achado: " + token << std::endl;
+            }
             if ( tempSS >> token2 ) { // Deve haver o numero de SPACEs
                 for (auto &i : token2) { // Verificar se pode haver conversao errada
                     if ( !std::isdigit( i ) ) {
@@ -182,6 +260,7 @@ void Montador::mountData (const std::string &data) {
                     holdNumOfSpaces = numOfSpaces;
                     while (numOfSpaces) {
                         endCode.push_back(0);
+                        relocable.push_back( 0 );
                         currentLine++;
                         numOfSpaces--;
                     }
@@ -194,6 +273,7 @@ void Montador::mountData (const std::string &data) {
             } else { // Do contrario so ha um SPACE
                 endCode.push_back(0);
                 holdNumOfSpaces = 1;
+                relocable.push_back( 0 );
                 currentLine++;
                 ehConst = false;
             }
@@ -217,7 +297,14 @@ void Montador::mountData (const std::string &data) {
                     endCode.push_back(val);
                     holdNumOfSpaces = 1;
                     ehConst = true;
+                    relocable.push_back( 0 );
                     currentLine++;
+                    if ( (itForDef = this->defTable.find( token ) ) != defTable.end() ) {
+                        // Deve definir um símbolo na tabela de definições
+                        itForDef->second[0] = endCode.size() - 1;
+                        std::cout << "Simbolo publico achado: " + token << std::endl;
+                    }
+                    
                 } catch (const std::exception& e) {
                     // std::cerr << "Lexicon error: erro na conversao de " << token2 << " para um valor de constante:\n" << e.what() << '\n';
                     codeIsFineToGo = false;
@@ -249,7 +336,7 @@ void Montador::mountData (const std::string &data) {
                     std::vector<std::string> insts = { "JMP", "JMPZ", "JMPP", "JMPN" };
                     if ( checkInst( i, insts ) ) {
                         std::vector < std::uint16_t > temp = { i };
-                        std::cout << "jump to data section in line:\n " << std::endl;
+                        std::cout << "Jump to data section in line:\n " << std::endl;
                         showInstructions(temp);
                         codeIsFineToGo = false;
                     } else if (ehConst) { // Garantir que nao ha alteracao de constante
@@ -301,12 +388,18 @@ void Montador::mountData (const std::string &data) {
         }
         currentTokenLine = currentLine;
     }
+    std::map < std::string, std::vector< int > >::iterator it;
     // Resolver todas a labels
     for (const auto& kv: labels) {
         // Label foi usada em algum lugar e precisa ser resolvida
         if ( deps.find(kv.first) != deps.end() ) {
             std::vector<std::string> insts = { "JMP", "JMPZ", "JMPP", "JMPN" };
             for (auto &i : deps[kv.first]) {
+                if ( (it = useTable.find (kv.first)) != useTable.end() ) { // Checa se não é um simbolo externo
+                    it->second.push_back ( i );
+                    endCode[i] = 0;
+                }
+
                 if ( checkInst( i, insts ) ) { // Checa se a label esta sendo usada na instrucao correta
                     endCode[i] = kv.second;
                 } else {
@@ -319,7 +412,7 @@ void Montador::mountData (const std::string &data) {
             // Marca que a pendencia foi resolvida
             deps[kv.first][0] = 65535;
         } else {
-            std::cout << "Label " + kv.first << " declared but not used." << std::endl;
+            // std::cout << "Label " + kv.first << " declared but not used." << std::endl;
         }
     }
     // Checar se todas as dependencias foram resolvidas
@@ -331,6 +424,8 @@ void Montador::mountData (const std::string &data) {
             codeIsFineToGo = false;
         }
     }
+
+    // Resolve os simbolos publicos
 }
 
 std::size_t Montador::checkIfThereIsSum( std::string &variable, std::stringstream &instructionLine ) {
@@ -408,10 +503,12 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
 
         endCode.push_back( val );
         deps[var1].push_back(currentPosition);
+        relocable.push_back( 1 );
         currentPosition++;
 
         endCode.push_back( val1 );
         deps[var2].push_back(currentPosition);
+        relocable.push_back( 1 );
         currentPosition++;
     // Instrução STOP não precisa de argumento. As outras precisam
     // Need to push one var
@@ -449,6 +546,7 @@ void Montador::dealInstruction ( std::stringstream &instructionLine, std::string
         }
         endCode.push_back( val );
         deps[instruction].push_back(currentPosition);
+        relocable.push_back( 1 );
         currentPosition++;
     } else if ( instructionLine >> instruction ) {
         std::cout << "Semantic error: STOP instruction is not expecting arguments in line " << instructionLine.str() << std::endl;

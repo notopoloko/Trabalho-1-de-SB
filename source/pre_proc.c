@@ -203,11 +203,11 @@ const char * pre_processamento(char *nome_arq){
             strcpy(antepen_token, pen_token);
             strcpy(pen_token, token);
 
-            if(!strcmp(token, "SECTION")){	// Detecta o nome de sessões
-                flag_section = 1;
-            }
+            // if(!strcmp(token, "SECTION")){	// Detecta o nome de sessões
+            //     flag_section = 1;
+            // }
 
-            if(flag_section == 1 && flag_if_print != 1 && flag_if_print != 2){ // Escreve no arquivo a partir de SECTION TEXT
+            if( flag_if_print != 1 && flag_if_print != 2){ // Escreve no arquivo a partir de SECTION TEXT
                 fprintf(pre_processado, "%s", token);
 		        flag_pula_linha = 1;
 		        flag_espaco = 1;
