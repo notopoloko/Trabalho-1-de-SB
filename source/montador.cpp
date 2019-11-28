@@ -135,6 +135,7 @@ void Montador::mountCode (const std::string &code) {
     std::string token, line;
     std::stringstream code_(code);
     std::size_t currentPosition = 0, doublePoints = 0;
+    std::map < std::string, std::vector< int > >::iterator it;
 
     while (std::getline(code_, line)) {
         // Pular linhas vazias
@@ -178,6 +179,14 @@ void Montador::mountCode (const std::string &code) {
                 }
                 
                 labels[token] = currentPosition;
+
+                // Por enquanto resolvendo labels publicas aqui
+                if ( (it = defTable.find(token)) != defTable.end() ) {
+                    it->second[0] = currentPosition;
+                    // std::cout << "Simbolo publico resolvido: " + token << std::endl;
+                }
+                
+
                 std::string possibleExtern = token;
                 temp >> token;
                 if ( token.size() > 0 && token[ token.size()-1 ] == ':' ) { // Achou outra label
@@ -216,7 +225,6 @@ void Montador::mountData (const std::string &data) {
     bool ehConst = false;
     std::map< std::string, std::vector<std::uint16_t> >::iterator itForDeps;
     std::map< std::string, std::vector<int> >::iterator itForDef;
-
     while (std::getline(data_, line)) {
         if (line.size() == 0) { // Nada para fazer, eh so um \n
             continue;
@@ -398,9 +406,7 @@ void Montador::mountData (const std::string &data) {
                 if ( (it = useTable.find (kv.first)) != useTable.end() ) { // Checa se não é um simbolo externo
                     it->second.push_back ( i );
                     endCode[i] = 0;
-                }
-
-                if ( checkInst( i, insts ) ) { // Checa se a label esta sendo usada na instrucao correta
+                } else if ( checkInst( i, insts ) ) { // Checa se a label esta sendo usada na instrucao correta
                     endCode[i] = kv.second;
                 } else {
                     std::vector < std::uint16_t > temp = { i };
@@ -426,6 +432,7 @@ void Montador::mountData (const std::string &data) {
     }
 
     // Resolve os simbolos publicos
+    
 }
 
 std::size_t Montador::checkIfThereIsSum( std::string &variable, std::stringstream &instructionLine ) {

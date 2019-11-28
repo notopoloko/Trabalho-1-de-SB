@@ -4,24 +4,26 @@ CXXFLAGS=-I $(SOURCE) -Wall -std=c++11
 
 ODIR=./obj
 
-all: $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o montador
+all: $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/ligador.o $(ODIR)/montador.o montador
 default: all
 debug_version: CXXFLAGS=-g -I $(SOURCE) -Wall
-debug_version: clean $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/montador.o montador_debug;
+debug_version: clean $(ODIR)/main.o $(ODIR)/pre_proc.o $(ODIR)/ligador.o $(ODIR)/montador.o montador_debug;
 
 # C++ -> .hpp
-_DEPS = pre_proc.h montador.hpp
+_DEPS = pre_proc.h montador.hpp ligador.h
 DEPS = $(patsubst %,$(SOURCE)/%,$(_DEPS))
 
-_OBJ = main.o pre_proc.o montador.o
+_OBJ = main.o pre_proc.o montador.o ligador.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
-
 
 $(ODIR)/main.o: main.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 # C++ -> .cpp
 $(ODIR)/pre_proc.o: $(SOURCE)/pre_proc.c $(DEPS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+
+$(ODIR)/ligador.o: $(SOURCE)/ligador.c $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 $(ODIR)/montador.o: $(SOURCE)/montador.cpp $(DEPS)

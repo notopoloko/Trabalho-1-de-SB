@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#define NULO -11037
+#include "ligador.h"
 
 // Função responsável por ligar o código. Recebe o(s) nomes do(s) arquivo(s)
 void ligador(char *nome_arq1, char *nome_arq2){
@@ -14,11 +11,13 @@ void ligador(char *nome_arq1, char *nome_arq2){
     }
 
     char aux[50];
-    for(int i = 0; i < sizeof(nome_arq1); i++){
-        if(nome_arq1[i] == '.')
-            nome_arq1[i] = '\0';    // Retira a extensão do nome do primeiro arquivo
+    for(size_t i = 0; i < strlen(nome_arq1); i++){
+        aux[i] = nome_arq1[i];
+        if(nome_arq1[i] == '.') {
+            aux[i] = '\0';  // Retira a extensão do nome do primeiro arquivo
+            break;
+        }
     }
-    strcat(aux, nome_arq1);
 
     FILE *saida = fopen(aux, "w");  // Cria um arquivo o nome do primeiro arquivo sem extensão
     if(saida == NULL){
@@ -28,7 +27,7 @@ void ligador(char *nome_arq1, char *nome_arq2){
 
     char linha[300];
 
-    int flag_h = 0, flag_t = 0;
+    int flag_t = 0;
 
     if(nome_arq2 != NULL){      // Caso tenha como entrada dois arquivos
         int codigo1[300], codigo2[300], cont = 0, cont_h = 0, cont_u = 0, cont_d = 0, fator_correcao;        
@@ -215,9 +214,9 @@ void ligador(char *nome_arq1, char *nome_arq2){
     }
 }
 
-int main(int argc, char** argv){
+// int main(int argc, char** argv){
 
-    ligador(argv[1], argv[2]);
+//     ligador(argv[1], argv[2]);
 
-    return 0;
-}
+//     return 0;
+// }
