@@ -22,12 +22,13 @@ digite_num db "=> "
 digite_num_size EQU $-digite_num
 igual db "Resultado: "
 igual_size EQU $-igual
+negacao db "-"
 
 section .bss
 nome resb 20
 opcao resb 2
-num1 resb 11
-num2 resb 11
+num1 resb 12
+num2 resb 12
 enter_fim resb 2
 resultado resd 1
 inteiro resd 1
@@ -129,7 +130,7 @@ recebe_int:
         add eax, ecx        ; Soma o atual ao total
     volta:
         inc esi
-        cmp esi, 12         ; Compara se já chegou o limite dos 11 caracteres
+        cmp esi, 11         ; Compara se já chegou o limite dos 11 caracteres
         je fim
         jmp repete_int
 
@@ -257,7 +258,7 @@ repete_menu:
     call imprime_string
 
     push num1
-    push dword 11
+    push dword 12
     call recebe_int         ; Chama função para o primeiro inteiro lido
     push dword [inteiro]    ; Empilha valor do primeiro inteiro
 
@@ -266,7 +267,7 @@ repete_menu:
     call imprime_string
 
     push num2
-    push dword 11
+    push dword 12
     call recebe_int         ; Chama função para o segundo inteiro
     
     pop edx                 ; Desempilha valor do primeiro inteiro em edx
@@ -289,11 +290,21 @@ repete_menu:
     call imprime_string
     jmp repete_menu
 
+; Função responsável para imprimir o resultado, negativo ou positivo
 mostra_result:
-    push igual              ; Imprime a string "Resultado:"
+    push igual              ; Imprime a string "Resultado: "
     push igual_size
     call imprime_string
 
+    cmp dword [resultado], 0    ; Caso seja um número negativo, imprime hífen
+    jge nao_imprime_hifen
+    push negacao
+    push dword 1
+    call imprime_string         ; Imprime o hífen
+    mov eax, [resultado]
+    neg eax
+    mov dword [resultado], eax  ; Usa neg no resultado pra ficar positivo
+nao_imprime_hifen:
     push eax
     push ebx
     push ecx
@@ -306,7 +317,6 @@ mostra_result:
     pop ecx
     pop ebx
     pop eax
-
 espera_enter:               ; Após imprimir o resultado, espera receber ENTER
     push enter_fim
     push dword 2
