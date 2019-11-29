@@ -195,8 +195,9 @@ void Montador::mountCode (const std::string &code) {
                     continue;
                 }
                 if ( codes.find(token) != codes.end() ) {
-                    // É um mnemonico
+                    // É um mnemonico. Não eh relocavel
                     endCode.push_back(codes[token]);
+                    relocable.push_back(0);
                     currentPosition++;
                     Montador::dealInstruction(temp, token, currentPosition);
                 } else if ( !token.compare("EXTERN") ) {
@@ -405,7 +406,7 @@ void Montador::mountData (const std::string &data) {
             for (auto &i : deps[kv.first]) {
                 if ( (it = useTable.find (kv.first)) != useTable.end() ) { // Checa se não é um simbolo externo
                     it->second.push_back ( i );
-                    endCode[i] = 0;
+                    // endCode[i] = 0;
                 } else if ( checkInst( i, insts ) ) { // Checa se a label esta sendo usada na instrucao correta
                     endCode[i] = kv.second;
                 } else {

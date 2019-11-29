@@ -52,7 +52,7 @@ void ligador(char *nome_arq1, char *nome_arq2){
         arq2 = fopen(nome_arq2, "r");   // Abre o segundo arquivo
 
         if(arq2 == NULL){
-            printf("Erro ao abrir o arquivo!\n");
+            printf("Erro ao abrir o segundo arquivo para ligação!\n");
             exit(1);
         }
 
