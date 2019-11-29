@@ -30,7 +30,7 @@ void ligador(char *nome_arq1, char *nome_arq2){
     int flag_t = 0;
 
     if(nome_arq2 != NULL){      // Caso tenha como entrada dois arquivos
-        int codigo1[300], codigo2[300], cont = 0, cont_h = 0, cont_u = 0, cont_d = 0, fator_correcao;        
+        int codigo1[500], codigo2[500], cont = 0, cont_h = 0, cont_u = 0, cont_d = 0, fator_correcao;        
         char *tu1[100], *tu2[100], *td1[100], *td2[100], map_bits[300];
 
         for (int k = 0; k < 100; k++) {  // Preenche com undefined
@@ -43,7 +43,7 @@ void ligador(char *nome_arq1, char *nome_arq2){
             td2[k] = (char*)malloc(50*sizeof(char));
             strcpy(td2[k], "undefined");
         }
-        for(int i = 0; i < 300; i++){   // Preenche com NULO
+        for(int i = 0; i < 500; i++){   // Preenche com NULO
             codigo1[i] = NULO;
             codigo2[i] = NULO;
         }
