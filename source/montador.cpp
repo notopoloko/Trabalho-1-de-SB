@@ -8,7 +8,11 @@ Montador::~Montador()
 {
 }
 
-std::string Montador::mount ( std::string fileName) {
+// std::string mountMultipleFiles(std::string fileName1, std::string fileName2) {
+
+// }
+
+std::string Montador::mount ( std::string fileName, bool isOneFile) {
     std::ifstream arq;
 
     std::cout << "\tFase de montagem:\n" << std::endl;
@@ -40,7 +44,7 @@ std::string Montador::mount ( std::string fileName) {
             token = content.substr( 0, doublePoints );
             token2 = content.substr( doublePoints + 1 ); // Pula o ':'
             // Arrumar outros casos
-            if ( token2.find("BEGIN") != std::string::npos ) {
+            if ( !isOneFile && (token2.find("BEGIN")) != std::string::npos ) {
                 buffer.seekg(0);
                 content = buffer.str();
                 // Sem delimitação final de módulo
@@ -52,10 +56,26 @@ std::string Montador::mount ( std::string fileName) {
                 content = content.substr(jmpChars, endModule - jmpChars);
                 this->programName = token;
                 // std::cout << "programName: " + token + "\nprogramContent: " + content << std::endl;
+            } else if (isOneFile && ( token2.find("BEGIN")) != std::string::npos ) {
+                // Checa se eh um arquivo e contém BEGIN
+                std::cout << "Não deve haver delimitação de módulo para um único arquivo." << std::endl;
+                ::exit( 0 );
             }
             break;
         }
     }
+    std::size_t slashPos, dotPos;
+    // Se for um arquivo e passar pelos teste, resgatar conteúdo de novo e atribuir um nome
+    if ( isOneFile ) {
+        slashPos = fileName.find_last_of ('/');
+        dotPos = fileName.find ('.');
+        this->programName = fileName.substr( slashPos == std::string::npos ? 0 : slashPos + 1, dotPos - slashPos - 1 );
+
+        buffer.seekg(0);
+        content = buffer.str();
+    }
+
+    std::cout << content << std::endl;
 
     // Procurar pela parte de codigo e de dados
     std::size_t textBegin = content.find("SECTION TEXT");

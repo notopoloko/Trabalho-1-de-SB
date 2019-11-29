@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 
     // Faz o primeiro processamento
     Montador montador1;
-    _objFileName1 = montador1.mount( pre_processamento(argv[1]) );
+    _objFileName1 = montador1.mount( pre_processamento(argv[1]), argc == 3 ? false : true);
     objFileName1 = (char*) malloc ( (_objFileName1.size() + 1) * sizeof(char));
 
     for (i = 0; i < _objFileName1.size(); i++) {
@@ -25,7 +25,7 @@ int main(int argc, char** argv){
     if ( argc == 3 ) { 
         Montador montador2;
 
-        _objFileName2 = montador2.mount( pre_processamento(argv[2]) );
+        _objFileName2 = montador2.mount( pre_processamento(argv[2]), false );
         objFileName2 = (char*) malloc ( (_objFileName2.size() + 1) * sizeof(char));
 
         for (i = 0; i < _objFileName2.size(); i++) {

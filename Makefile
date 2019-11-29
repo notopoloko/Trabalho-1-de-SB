@@ -40,6 +40,11 @@ montador_debug: $(OBJ)
 simulador:
 	$(CXX) -o $@ $(SOURCE)/simulador.c
 
+# Compila e liga
+calculadora:
+	nasm -f elf -o $(ODIR)/calculadora.o $(SOURCE)/calculadora.asm
+	ld -m elf_i386 -o calculadora $(ODIR)/calculadora.o
+
 .PHONY: clean
 
 clean:

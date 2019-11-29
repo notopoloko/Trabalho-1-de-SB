@@ -71,6 +71,7 @@ public:
     Montador();
     ~Montador();
 
-    std::string mount ( std::string fileName);
+    std::string mount ( std::string fileName, bool isOneFile);
+    // std::string mountMultipleFiles(std::string fileName1, std::string fileName2);
 };
 

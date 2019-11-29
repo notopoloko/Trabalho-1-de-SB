@@ -1,6 +1,7 @@
 montador
 montador_debug
 simulador
+calculadora
 obj/*.o
 .vscode
 .idea
