@@ -25,15 +25,15 @@ void ligador(char *nome_arq1, char *nome_arq2){
         exit(1);
     }
 
-    char linha[300];
+    char linha[500];
 
     int flag_t = 0;
 
     if(nome_arq2 != NULL){      // Caso tenha como entrada dois arquivos
         int codigo1[300], codigo2[300], cont = 0, cont_h = 0, cont_u = 0, cont_d = 0, fator_correcao;        
-        char *tu1[30], *tu2[30], *td1[30], *td2[30], map_bits[150];
+        char *tu1[100], *tu2[100], *td1[100], *td2[100], map_bits[300];
 
-        for (int k = 0; k < 30; k++) {  // Preenche com undefined
+        for (int k = 0; k < 100; k++) {  // Preenche com undefined
             tu1[k] = (char*)malloc(50*sizeof(char));
             strcpy(tu1[k], "undefined");
             tu2[k] = (char*)malloc(50*sizeof(char));
@@ -140,16 +140,15 @@ void ligador(char *nome_arq1, char *nome_arq2){
         /*Resolve TU, TD e fator de correcao do modulo 1*/
         while(strcmp(tu1[cont_u], "undefined")){
             while(strcmp(td2[cont_d], "undefined")){
-
                 if(!strcmp(tu1[cont_u], td2[cont_d])){
                     sscanf(tu1[cont_u + 1], "%d", &aux1);   // Soma valor da tabela de definicao do 2
                     sscanf(td2[cont_d + 1], "%d", &aux2);   // Soma o fator de correcao do 2
                     codigo1[aux1] += aux2;
                     codigo1[aux1] += fator_correcao;
                 }
-                cont_d++;
+                cont_d += 2;
             }
-            cont_u++;
+            cont_u += 2;
             cont_d = 0;
         }
         while(codigo1[cont] != NULO){   // Escreve o modulo 1
@@ -161,20 +160,18 @@ void ligador(char *nome_arq1, char *nome_arq2){
         cont_u = 0;
         cont_d = 0;
         cont = 0;
-
         /*Resolve TU e TD do modulo 2*/
         while(strcmp(tu2[cont_u], "undefined")){
             while(strcmp(td1[cont_d], "undefined")){
-
                 if(!strcmp(tu2[cont_u], td1[cont_d])){
                     sscanf(tu2[cont_u + 1], "%d", &aux1);
                     sscanf(td1[cont_d + 1], "%d", &aux2);
                     codigo2[aux1] += aux2;
                     map_bits[aux1] = '0';   // Marca para nao precisar do fator de correcao
                 }
-                cont_d++;
+                cont_d += 2;
             }
-            cont_u++;
+            cont_u += 2;
             cont_d = 0;
         }
 
@@ -185,7 +182,7 @@ void ligador(char *nome_arq1, char *nome_arq2){
             cont++;
         }
 
-        for(int k = 0; k < 30; k++){
+        for(int k = 0; k < 100; k++){
             free(tu1[k]);
             free(tu2[k]);
             free(td1[k]);
