@@ -1,7 +1,7 @@
 Universidade de Brasilia - 02/2019
 Software Basico - Turma B
 Professor Bruno Macchiavello
-Trabalho Pratico 1 - Montador e Simulador
+Trabalho Pratico 2 - Montador, Ligador e Calculadora IA-32
 
 Alunos: 
         Rafael Amaral Soares        15/0145331
@@ -13,12 +13,18 @@ Neste projeto encontra-se um arquivo makefile para auxiliar no processo de compi
 Não se esqueça que é necessário uma pasta chamada obj no diretório raiz para armazenar os arquivos objeto
 Para compilar o montador, basta digitar no diretório raiz:
     make montador
+Para compilar o ligador, basta digitar no diretório raiz:
+    make ligador
 Para compilar o simulador, basta digitar no diretório raiz:
     make simulador
-Os arquivos executáveis se chamarão montador e simulador
+Para compilar a calculadora, basta digitar no diretório raiz:
+    make calculadora
+Os arquivos executáveis se chamarão montador, ligador, simulador e calculadora
 Para executar basta digitar:
-    ./montador <arquivo.asm> ou
-    ./simulador <arquivo.obj>
+    ./montador <arquivo1.asm> <arquivo2.asm> ou
+    ./ligador <arquivo1.obj> <arquivo2.obj> ou
+    ./simulador <arquivo1>
+    ./calculadora
 
 Dentro da pasta example há vários arquivos que foram usados para teste. Os erros que eles
 contém estão comentados dentro do código. Vale lembrar que os números que vem antes das linhas caso haja erros
