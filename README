@@ -11,21 +11,19 @@ Alunos:
 Para compilar este programa é necessário ter um compilador para C++11
 Neste projeto encontra-se um arquivo makefile para auxiliar no processo de compilação
 Não se esqueça que é necessário uma pasta chamada obj no diretório raiz para armazenar os arquivos objeto
-Para compilar o montador, basta digitar no diretório raiz:
+Para compilar o montador e ligador, que está linkado, basta digitar no diretório raiz:
     make montador
-Para compilar o ligador, basta digitar no diretório raiz:
-    make ligador
 Para compilar o simulador, basta digitar no diretório raiz:
     make simulador
 Para compilar a calculadora, basta digitar no diretório raiz:
     make calculadora
 Os arquivos executáveis se chamarão montador, ligador, simulador e calculadora
-Para executar basta digitar:
-    ./montador <arquivo1.asm> <arquivo2.asm> ou
-    ./ligador <arquivo1.obj> <arquivo2.obj> ou
-    ./simulador <arquivo1>
+Para executar o montador e a calculadora basta digitar:
+    ./montador <arquivo1.asm> <arquivo2.asm>
+    ./simulador <arquivo1> e
     ./calculadora
 
+Note que, ao executar o montador, também é realizada a ligação dos códigos, caso exista dois.
 Dentro da pasta example há vários arquivos que foram usados para teste. Os erros que eles
 contém estão comentados dentro do código. Vale lembrar que os números que vem antes das linhas caso haja erros
 equivalem ao endereço da instrução e não à linha do arquivo, (e.g XX ADD B. XX é um endereço)
