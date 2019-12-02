@@ -75,7 +75,7 @@ std::string Montador::mount ( std::string fileName, bool isOneFile) {
         content = buffer.str();
     }
 
-    std::cout << content << std::endl;
+    // std::cout << content << std::endl;
 
     // Procurar pela parte de codigo e de dados
     std::size_t textBegin = content.find("SECTION TEXT");

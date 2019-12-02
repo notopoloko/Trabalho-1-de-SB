@@ -17,16 +17,19 @@ Para compilar o simulador, basta digitar no diretório raiz:
     make simulador
 Para compilar a calculadora, basta digitar no diretório raiz:
     make calculadora
-Os arquivos executáveis se chamarão montador, ligador, simulador e calculadora
+Os arquivos executáveis se chamarão montador, simulador e calculadora
 Para executar o montador e a calculadora basta digitar:
-    ./montador <arquivo1.asm> <arquivo2.asm>
+    ./montador <arquivo1.asm> <arquivo2.asm> ou
+    ./montador <arquivo1.asm>
     ./simulador <arquivo1> e
     ./calculadora
 
 Note que, ao executar o montador, também é realizada a ligação dos códigos, caso exista dois.
-Dentro da pasta example há vários arquivos que foram usados para teste. Os erros que eles
-contém estão comentados dentro do código. Vale lembrar que os números que vem antes das linhas caso haja erros
-equivalem ao endereço da instrução e não à linha do arquivo, (e.g XX ADD B. XX é um endereço)
+Dentro da pasta example há vários arquivos que foram usados para teste.
+
+Obs: A impressão de número de 64 bits acontece. Demora, mas acontece. De 32 não é tão lenta.
+Números como 36893488147419103231 (2^65-1) demorou cerca de duas horas para impressão na minha máquina :(
+Ela não é rápida (é muito lenta), porém imprime.
 
 SO utilizado: Ubuntu 7.4.0-1ubuntu1~18.04.1
 Compilador: gcc version 7.4.0

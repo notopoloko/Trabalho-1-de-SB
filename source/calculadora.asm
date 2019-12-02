@@ -31,10 +31,99 @@ num1 resb 12
 num2 resb 12
 enter_fim resb 2
 resultado resd 1
+resultado2 resd 1
 inteiro resd 1
 
 section .text
 global _start
+
+; Funçao para impressão. Recebe um inteiro de 64 
+; bits para impressao EDX -> EAX
+; Registradores usados: empilhe os registradores antes de chamar
+print_64:
+    push ebp
+    mov ebp, esp
+
+    ; long int i = 0;
+    ; long int res = 0;
+    mov esi, 0
+    sub esp, 128
+
+    mov edi, 0
+    mov eax, 0
+    mov ecx, 0
+
+    ; Aloca 21 espaços para impressão
+    sub esp, 21
+    mov esi, 21
+
+    ; Coloca um '\n' no final
+    mov byte [esp + esi], 0ah
+    
+next_64:
+    mov dword eax, [ ebp + 12 ]
+    mov dword ebx, [ ebp + 8 ]
+
+    mov dword ecx, [ ebp - 8 ]
+    mov dword edx, [ ebp - 4 ]
+
+    sub eax, ecx
+    sbb ebx, edx
+
+    cmp ebx, 0
+    jne sumToGo
+    cmp eax, 10
+    jae sumToGo
+
+    ; Guardar o valor de eax
+    add al, '0'
+    dec esi
+    mov byte [esp + esi], al
+
+    ; Guardar os novos valores (temp)
+    mov dword ecx, [ ebp - 12 ]
+    mov dword edx, [ ebp - 16 ]
+
+    mov dword [ ebp + 12 ], ecx
+    mov dword [ ebp + 8 ], edx
+
+    ; Zerar para contar de novo
+    mov dword [ ebp - 8 ], 0
+    mov dword [ ebp - 4 ], 0
+    mov dword [ ebp - 12 ], 0
+    mov dword [ ebp - 16 ], 0
+
+    ; Voltar caso os 64 bits nao sejam 0
+    cmp ecx, 0
+    jne next_64
+    cmp edx, 0
+    jne next_64
+    
+    ; Mostra na tela
+    add esi, esp
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, esi
+    mov edx, 21
+    int 80h
+
+    add esp, 21
+
+    add esp, 128
+
+    pop ebp
+    ret 8
+
+sumToGo:
+    ; i += 10
+    add dword [ebp - 8], 10
+    adc dword [ebp - 4], 0
+
+    ; temp += 1
+    add dword [ebp - 12], 1
+    adc dword [ebp - 16], 0
+
+    jmp next_64
 
 ; Funçao para impressão. Recebe um inteiro de 32 
 ; bits para impressao com passagem de parâmetro pela pilha
@@ -290,6 +379,34 @@ repete_menu:
     call imprime_string
     jmp repete_menu
 
+; Função responsável para imprimir o resultado da multiplicação
+mostra_result_mult:
+    push igual              ; Imprime a string "Resultado: "
+    push igual_size
+    call imprime_string
+
+    ; Compara a parte mais significativa para ver se eh negativo
+    cmp dword [resultado2], 0
+    jge semHifen
+    ; eh negativo e precisa ser invertido
+    push negacao
+    push dword 1
+    call imprime_string         ; Imprime o hífen
+
+    not dword [resultado]
+    not dword [resultado2]
+    add dword [resultado], 1
+    add dword [resultado2], 0
+
+semHifen:
+    pusha
+    push dword [resultado]
+    push dword [resultado2]
+    call print_64
+    popa
+
+    jmp espera_enter
+
 ; Função responsável para imprimir o resultado, negativo ou positivo
 mostra_result:
     push igual              ; Imprime a string "Resultado: "
@@ -346,8 +463,9 @@ mult:
     imul dword [inteiro]     ; Realiza a multiplicação
 
     mov dword [resultado], eax  ; Passa a multiplicação para resultado
+    mov dword [resultado2], edx ; Passa a multiplicação para resultado
 
-    jmp mostra_result
+    jmp mostra_result_mult
 
 divi:
     mov eax, edx

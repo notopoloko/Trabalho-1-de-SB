@@ -48,4 +48,4 @@ calculadora:
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o montador montador_debug simulador
+	rm -f $(ODIR)/*.o montador montador_debug simulador calculadora
